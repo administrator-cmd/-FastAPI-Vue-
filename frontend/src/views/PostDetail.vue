@@ -8,7 +8,7 @@
         <h1 class="post-title">{{ post.title }}</h1>
         <div class="post-meta">
           <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
-          <el-tag type="warning" size="small">作者 ID: {{ post.author_id }}</el-tag>
+          <el-tag type="warning" size="small">作者: {{ post.author_username || post.author_id }}</el-tag>
         </div>
         <div class="post-content" v-html="post.content_html"></div>
         <div class="post-actions" v-if="canEdit">
@@ -26,6 +26,69 @@
       <div v-else class="no-post">
         <el-empty description="文章不存在" />
         <el-button @click="$router.push('/')">返回首页</el-button>
+      </div>
+    </el-card>
+
+    <!-- 评论区 -->
+    <el-card class="comments-section" v-if="post">
+      <h3 class="comments-title">评论 ({{ comments.length }})</h3>
+      
+      <!-- 发表评论 -->
+      <div class="comment-form" v-if="currentUser">
+        <el-input
+          v-model="newComment"
+          type="textarea"
+          :rows="3"
+          placeholder="写下你的评论..."
+          maxlength="500"
+          show-word-limit
+        />
+        <el-button 
+          type="primary" 
+          @click="submitComment"
+          :loading="commentLoading"
+          style="margin-top: 10px;"
+        >
+          发表评论
+        </el-button>
+      </div>
+      <div v-else class="login-tip">
+        <el-alert
+          title="登录后即可发表评论"
+          type="info"
+          :closable="false"
+        >
+          <template #default>
+            <el-button type="primary" size="small" @click="$router.push('/login')">
+              去登录
+            </el-button>
+          </template>
+        </el-alert>
+      </div>
+
+      <!-- 评论列表 -->
+      <div class="comments-list" v-loading="commentsLoading">
+        <div v-if="comments.length === 0 && !commentsLoading" class="no-comments">
+          <el-empty description="暂无评论,快来抢沙发吧!" />
+        </div>
+        
+        <div v-for="comment in comments" :key="comment.id" class="comment-item">
+          <div class="comment-header">
+            <span class="comment-author">{{ comment.author_username || '用户 ID: ' + comment.author_id }}</span>
+            <span class="comment-time">{{ formatDate(comment.created_at) }}</span>
+          </div>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div class="comment-actions" v-if="canDeleteComment(comment)">
+            <el-popconfirm 
+              title="确定要删除这条评论吗?" 
+              @confirm="handleDeleteComment(comment.id)"
+            >
+              <template #reference>
+                <el-button type="danger" size="small" link>删除</el-button>
+              </template>
+            </el-popconfirm>
+          </div>
+        </div>
       </div>
     </el-card>
   </div>
@@ -47,13 +110,21 @@ export default {
     
     const loading = ref(true)
     const postId = parseInt(route.params.id)
+    const newComment = ref('')
+    const commentLoading = ref(false)
     
     const post = computed(() => store.getters['posts/currentPost'])
     const currentUser = computed(() => store.getters['auth/currentUser'])
+    const comments = computed(() => store.getters['comments/comments'])
+    const commentsLoading = computed(() => store.getters['comments/loading'])
     
     const canEdit = computed(() => {
       return post.value && currentUser.value && post.value.author_id === currentUser.value.id
     })
+    
+    const canDeleteComment = (comment) => {
+      return currentUser.value && comment.author_id === currentUser.value.id
+    }
     
     const loadPost = async () => {
       try {
@@ -62,6 +133,14 @@ export default {
         console.error('加载文章失败:', error)
       } finally {
         loading.value = false
+      }
+    }
+    
+    const loadComments = async () => {
+      try {
+        await store.dispatch('comments/fetchComments', postId)
+      } catch (error) {
+        console.error('加载评论失败:', error)
       }
     }
     
@@ -84,8 +163,41 @@ export default {
       }
     }
     
+    const submitComment = async () => {
+      if (!newComment.value.trim()) {
+        ElMessage.warning('评论内容不能为空')
+        return
+      }
+      
+      commentLoading.value = true
+      try {
+        await store.dispatch('comments/createComment', {
+          postId,
+          commentData: { content: newComment.value }
+        })
+        ElMessage.success('评论成功')
+        newComment.value = ''
+      } catch (error) {
+        console.error('发表评论失败:', error)
+        ElMessage.error('评论失败')
+      } finally {
+        commentLoading.value = false
+      }
+    }
+    
+    const handleDeleteComment = async (commentId) => {
+      try {
+        await store.dispatch('comments/deleteComment', commentId)
+        ElMessage.success('删除成功')
+      } catch (error) {
+        console.error('删除评论失败:', error)
+        ElMessage.error('删除失败')
+      }
+    }
+    
     onMounted(() => {
       loadPost()
+      loadComments()
     })
     
     return {
@@ -93,9 +205,16 @@ export default {
       loading,
       currentUser,
       canEdit,
+      comments,
+      commentsLoading,
+      newComment,
+      commentLoading,
+      canDeleteComment,
       formatDate,
       editPost,
-      deletePost
+      deletePost,
+      submitComment,
+      handleDeleteComment
     }
   }
 }
@@ -233,6 +352,77 @@ export default {
 .no-post {
   text-align: center;
   padding: 40px 0;
+}
+
+.comments-section {
+  margin-top: 20px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.comments-title {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.comment-form {
+  margin-bottom: 30px;
+}
+
+.login-tip {
+  margin-bottom: 20px;
+}
+
+.comments-list {
+  min-height: 100px;
+}
+
+.no-comments {
+  padding: 20px 0;
+}
+
+.comment-item {
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-author {
+  font-weight: bold;
+  color: #409eff;
+  font-size: 14px;
+}
+
+.comment-time {
+  color: #999;
+  font-size: 12px;
+}
+
+.comment-content {
+  color: #666;
+  line-height: 1.6;
+  font-size: 14px;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.comment-actions {
+  text-align: right;
 }
 
 /* 移动端适配 */

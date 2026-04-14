@@ -26,7 +26,7 @@
                 {{ truncateContent(post.content_html) }}
               </div>
               <div class="post-author">
-                作者: <el-tag size="small" type="success">{{ post.author_id }}</el-tag>
+                作者: <el-tag size="small" type="success">{{ post.author_username || post.author_id }}</el-tag>
               </div>
             </el-card>
             

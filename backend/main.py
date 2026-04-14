@@ -11,6 +11,7 @@ import time
 from datetime import timedelta
 
 import crud
+from schemas import CommentCreate, CommentResponse
 from utils import render_markdown
 from dependencies import get_async_db, get_pagination, get_current_user, get_current_user_id, verify_post_owner
 from database import create_tables
@@ -355,6 +356,7 @@ async def list_posts(
             content=post.content,
             content_html=post.content_html,
             author_id=post.author_id,
+            author_username=post.author.username if post.author else None,
             created_at=post.created_at,
             updated_at=post.updated_at
         )
@@ -374,6 +376,7 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
         content=post.content,
         content_html=post.content_html,
         author_id=post.author_id,
+        author_username=post.author.username if post.author else None,
         created_at=post.created_at,
         updated_at=post.updated_at
     )
@@ -442,3 +445,72 @@ async def delete_post_api(
         raise HTTPException(status_code=500, detail="删除文章失败")
     
     return {"message": "文章删除成功"}
+# ===== 评论相关API =====
+@app.post("/posts/{post_id}/comments", response_model=CommentCreate, status_code=status.HTTP_201_CREATED)
+async def create_comment(
+        post_id: int,
+        comment_data: CommentCreate,
+        current_user_id: int = Depends(get_current_user_id),
+        db: AsyncSession = Depends(get_async_db)
+    ):
+    """创建评论"""
+    post = await crud.get_post_by_id(db, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="文章不存在")
+
+    try:
+        db_comment = await crud.create_comment(
+            db,
+            content=comment_data.content,
+            author_id=current_user_id,
+            post_id=post_id
+        )
+        return CommentResponse(
+            id=db_comment.id,
+            content=db_comment.content,
+            author_id=db_comment.author_id,
+            author_username=post.author.username if post.author else None,
+            post_id=db_comment.post_id,
+            created_at=db_comment.created_at
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"创建评论失败: {str(e)}")
+
+@app.get("/posts/{post_id}/comments", response_model=List[CommentResponse])
+async def get_comments(
+    post_id: int,
+    db: AsyncSession = Depends(get_async_db)
+):
+    """获取文章的评论列表"""
+    comments = await crud.get_comments(db, post_id)
+    return [
+        CommentResponse(
+            id=comment.id,
+            content=comment.content,
+            author_id=comment.author_id,
+            author_username=comment.author.username if comment.author else None,
+            post_id=comment.post_id,
+            created_at=comment.created_at
+        )
+        for comment in comments
+    ]
+
+# 删除评论
+@app.delete("/comments/{comment_id}")
+async def delete_comment(
+    comment_id: int,
+    current_user_id: int = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_async_db)
+):
+    """删除评论"""
+    comment = await crud.get_comment_by_id(db, comment_id)
+    if not comment:
+        raise HTTPException(status_code=404, detail="评论不存在")
+
+    if comment.author_id != current_user_id:
+        raise HTTPException(status_code=403, detail="无权限删除该评论")
+
+    await crud.delete_comment(db, comment_id, current_user_id)
+    return {"message": "评论删除成功"}
