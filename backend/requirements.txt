@@ -22,3 +22,11 @@ fastapi-cdn-host==0.8.0
 
 # 脚本依赖
 requests==2.31.0
+
+bleach==6.3.0
+fastapi==0.135.3
+fastapi_cdn_host==0.10.0
+pydantic==2.13.0
+python_jose==3.5.0
+SQLAlchemy==2.0.49
+starlette==1.0.0
