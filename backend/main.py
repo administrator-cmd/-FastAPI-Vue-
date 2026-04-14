@@ -11,6 +11,7 @@ import time
 from datetime import timedelta
 
 import crud
+from utils import render_markdown
 from dependencies import get_async_db, get_pagination, get_current_user, get_current_user_id, verify_post_owner
 from database import create_tables
 from schemas import UserRegister, UserResponse, UserLogin, PostCreate, PostResponse, TokenResponse
@@ -325,6 +326,7 @@ async def create_post_api(post_data: PostCreate, current_user_id: int = Depends(
             id=db_post.id,
             title=db_post.title,
             content=db_post.content,
+            content_html=db_post.content_html,
             author_id=db_post.author_id,
             created_at=db_post.created_at,
             updated_at=db_post.updated_at
@@ -351,6 +353,7 @@ async def list_posts(
             id=post.id,
             title=post.title,
             content=post.content,
+            content_html=post.content_html,
             author_id=post.author_id,
             created_at=post.created_at,
             updated_at=post.updated_at
@@ -369,6 +372,7 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
         id=post.id,
         title=post.title,
         content=post.content,
+        content_html=post.content_html,
         author_id=post.author_id,
         created_at=post.created_at,
         updated_at=post.updated_at
@@ -388,6 +392,7 @@ async def get_user_posts(user_id: int, db: AsyncSession = Depends(get_async_db))
             id=post.id,
             title=post.title,
             content=post.content,
+            content_html=post.content_html,
             author_id=post.author_id,
             created_at=post.created_at,
             updated_at=post.updated_at
@@ -410,12 +415,14 @@ async def update_post_api(
             post_id, 
             title=post_data.title, 
             content=post_data.content
+
         )
         
         return PostResponse(
             id=updated_post.id,
             title=updated_post.title,
             content=updated_post.content,
+            content_html=updated_post.content_html,
             author_id=updated_post.author_id,
             created_at=updated_post.created_at,
             updated_at=updated_post.updated_at

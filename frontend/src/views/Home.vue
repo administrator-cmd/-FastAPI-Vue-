@@ -23,7 +23,7 @@
                 </div>
               </template>
               <div class="post-content">
-                {{ truncateContent(post.content) }}
+                {{ truncateContent(post.content_html) }}
               </div>
               <div class="post-author">
                 作者: <el-tag size="small" type="success">{{ post.author_id }}</el-tag>
@@ -107,9 +107,13 @@ export default {
       router.push(`/posts/${postId}`)
     }
     
-    const truncateContent = (content) => {
-      if (!content) return ''
-      return content.length > 150 ? content.substring(0, 150) + '...' : content
+    const truncateContent = (contentHtml) => {
+      if (!contentHtml) return ''
+      // 从 HTML 中提取纯文本
+      const div = document.createElement('div')
+      div.innerHTML = contentHtml
+      const plainText = div.textContent || div.innerText || ''
+      return plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText
     }
     
     const formatDate = (dateString) => {
@@ -192,5 +196,41 @@ export default {
 
 .loading {
   margin: 20px 0;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .home {
+    width: 100%;
+  }
+  
+  .home-row {
+    flex-direction: column;
+  }
+  
+  .posts-container,
+  .sidebar {
+    padding: 12px;
+    width: 100%;
+  }
+  
+  .sidebar {
+    margin-top: 12px;
+  }
+  
+  .post-title {
+    font-size: 16px;
+  }
+  
+  .post-content {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 </style>

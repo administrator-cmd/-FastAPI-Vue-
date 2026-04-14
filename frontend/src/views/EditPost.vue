@@ -18,14 +18,7 @@
         </el-form-item>
         
         <el-form-item label="内容" prop="content">
-          <el-input
-            v-model="form.content"
-            type="textarea"
-            :rows="15"
-            placeholder="请输入文章内容"
-            maxlength="5000"
-            show-word-limit
-          />
+          <textarea id="post-content-editor"></textarea>
         </el-form-item>
         
         <el-form-item>
@@ -47,10 +40,12 @@
 </template>
 
 <script>
-import { reactive, ref, toRefs, onMounted } from 'vue'
+import { reactive, ref, toRefs, onMounted, onBeforeUnmount } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import EasyMDE from 'easymde'
+import 'easymde/dist/easymde.min.css'
 
 export default {
   name: 'EditPost',
@@ -59,6 +54,7 @@ export default {
     const router = useRouter()
     const route = useRoute()
     const postFormRef = ref(null)
+    let easyMDE = null
     
     const state = reactive({
       form: {
@@ -79,6 +75,31 @@ export default {
       }
     })
     
+    // 初始化 Markdown 编辑器
+    const initEditor = () => {
+      easyMDE = new EasyMDE({
+        element: document.getElementById('post-content-editor'),
+        spellChecker: false,
+        autosave: {
+          enabled: false
+        },
+        toolbar: [
+          'bold', 'italic', 'heading', '|',
+          'quote', 'unordered-list', 'ordered-list', '|',
+          'link', 'image', '|',
+          'preview', 'side-by-side', 'fullscreen', '|',
+          'guide'
+        ],
+        placeholder: '请输入文章内容（支持 Markdown）',
+        status: false
+      })
+      
+      // 监听编辑器内容变化，同步到表单
+      easyMDE.codemirror.on('change', () => {
+        state.form.content = easyMDE.value()
+      })
+    }
+    
     // 加载文章详情
     const loadPost = async () => {
       try {
@@ -95,6 +116,11 @@ export default {
         
         state.form.title = post.title
         state.form.content = post.content
+        
+        // 填充编辑器内容
+        if (easyMDE) {
+          easyMDE.value(post.content)
+        }
       } catch (error) {
         console.error('加载文章失败:', error)
         ElMessage.error('加载文章失败')
@@ -104,6 +130,9 @@ export default {
     
     const submitForm = async () => {
       try {
+        // 从编辑器获取最新内容
+        state.form.content = easyMDE.value()
+        
         await postFormRef.value.validate()
         
         state.submitting = true
@@ -132,7 +161,16 @@ export default {
     }
     
     onMounted(() => {
+      initEditor()
       loadPost()
+    })
+    
+    onBeforeUnmount(() => {
+      // 清理编辑器实例
+      if (easyMDE) {
+        easyMDE.toTextArea()
+        easyMDE = null
+      }
     })
     
     return {
@@ -160,5 +198,43 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* EasyMDE 样式调整 */
+:deep(.EasyMDEContainer) {
+  margin-top: 10px;
+}
+
+:deep(.editor-toolbar) {
+  border-color: #dcdfe6;
+}
+
+:deep(.CodeMirror) {
+  border-color: #dcdfe6;
+  min-height: 400px;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .edit-post-container {
+    width: 100%;
+  }
+  
+  .edit-post-card {
+    padding: 12px;
+  }
+  
+  :deep(.CodeMirror) {
+    min-height: 300px;
+    font-size: 14px;
+  }
+  
+  :deep(.editor-toolbar) {
+    font-size: 13px;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 14px;
+  }
 }
 </style>

@@ -25,7 +25,8 @@ class Post(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False, index=True)
-    content = Column(Text, nullable=False)
+    content = Column(Text, nullable=False) # 原始Markdown文本
+    content_html = Column(Text, nullable=False) # 渲染后的HTML文本
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     

@@ -120,6 +120,7 @@ class PostResponse(BaseModel):
     id: int
     title: str
     content: str
+    content_html: str
     author_id: int
     created_at: datetime
     updated_at: datetime

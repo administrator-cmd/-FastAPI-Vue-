@@ -9,6 +9,7 @@ from sqlalchemy import select, or_, desc
 from typing import List, Optional
 import hashlib
 
+from utils import render_markdown
 from models import User, Post
 
 # ===== 异步用户相关操作 =====
@@ -133,6 +134,7 @@ async def create_post(db: AsyncSession, title: str, content: str, author_id: int
     db_post = Post(
         title=title,
         content=content,
+        content_html=render_markdown(content),
         author_id=author_id
     )
     
@@ -152,7 +154,7 @@ async def update_post(db: AsyncSession, post_id: int, title: str = None, content
         post.title = title
     if content is not None:
         post.content = content
-    
+    post.content_html = render_markdown(post.content)
     await db.commit()
     await db.refresh(post)
     

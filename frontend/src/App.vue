@@ -91,4 +91,21 @@ export default {
   border-radius: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px;
+  }
+  
+  .el-menu--horizontal {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .el-menu--horizontal > .el-menu-item {
+    padding: 0 12px;
+    font-size: 14px;
+  }
+}
 </style>

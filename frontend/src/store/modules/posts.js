@@ -31,9 +31,11 @@ const mutations = {
 }
 
 const actions = {
-  fetchPosts({ commit }) {
+  fetchPosts({ commit }, { page = 1, size = 10, keyword = '' } = {}) {
     commit('SET_LOADING', true)
-    return request.get('/posts')
+    const params = { page, size }
+    if (keyword) params.keyword = keyword
+    return request.get('/posts', { params })
       .then(response => {
         commit('SET_POSTS', response)
         commit('SET_LOADING', false)
@@ -78,6 +80,60 @@ const actions = {
     return request.get(`/posts/${postId}`)
       .then(response => {
         commit('SET_CURRENT_POST', response)
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchUserPosts({ commit }, userId) {
+    return request.get(`/users/${userId}/posts`)
+      .then(response => {
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchAllUsers({ commit }) {
+    return request.get('/users')
+      .then(response => {
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchHealth({ commit }) {
+    return request.get('/health')
+      .then(response => {
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchUserPosts({ commit }, userId) {
+    return request.get(`/users/${userId}/posts`)
+      .then(response => {
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchAllUsers({ commit }) {
+    return request.get('/users')
+      .then(response => {
+        return response
+      })
+      .catch(error => {
+        throw error
+      })
+  },
+  fetchHealth({ commit }) {
+    return request.get('/health')
+      .then(response => {
         return response
       })
       .catch(error => {

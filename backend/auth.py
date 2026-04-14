@@ -6,8 +6,8 @@ from fastapi import HTTPException, status
 
 
 SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ALGORITHM = "HS256" # 加密算法
+ACCESS_TOKEN_EXPIRE_MINUTES = 30 # 30分钟后令牌过期
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -23,6 +23,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def verify_token(token: str) -> dict:
     try:
+        # 解码JWT algorithms=[ALGORITHM] 表示使用HS256算法进行解码
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         user_id_str: str = payload.get("sub")

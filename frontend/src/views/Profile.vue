@@ -98,8 +98,8 @@ export default {
     const loadUserPosts = async () => {
       try {
         loading.value = true
-        const response = await store.dispatch('posts/fetchPosts')
-        userPosts.value = response.filter(post => post.author_id === currentUser.value.id)
+        const response = await store.dispatch('posts/fetchUserPosts', currentUser.value.id)
+        userPosts.value = response
       } catch (error) {
         console.error('加载用户文章失败:', error)
       } finally {
@@ -186,5 +186,26 @@ export default {
 .no-posts {
   text-align: center;
   padding: 40px 0;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .profile-container {
+    width: 100%;
+  }
+  
+  .profile-card,
+  .my-posts {
+    padding: 12px;
+  }
+  
+  :deep(.el-table) {
+    font-size: 13px;
+  }
+  
+  :deep(.el-descriptions__label),
+  :deep(.el-descriptions__content) {
+    font-size: 14px;
+  }
 }
 </style>

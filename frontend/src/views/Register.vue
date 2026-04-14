@@ -169,4 +169,12 @@ export default {
 .register-form {
   padding: 20px;
 }
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .register-form {
+    width: 100% !important;
+    margin: 0 12px;
+  }
+}
 </style>

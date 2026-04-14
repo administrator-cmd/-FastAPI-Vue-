@@ -10,9 +10,7 @@
           <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
           <el-tag type="warning" size="small">作者 ID: {{ post.author_id }}</el-tag>
         </div>
-        <div class="post-content">
-          <p>{{ post.content }}</p>
-        </div>
+        <div class="post-content" v-html="post.content_html"></div>
         <div class="post-actions" v-if="canEdit">
           <el-button type="primary" @click="editPost">编辑</el-button>
           <el-popconfirm 
@@ -135,6 +133,93 @@ export default {
   margin-bottom: 30px;
 }
 
+.post-content :deep(h1) {
+  font-size: 2em;
+  margin: 0.67em 0;
+  font-weight: bold;
+}
+
+.post-content :deep(h2) {
+  font-size: 1.5em;
+  margin: 0.75em 0;
+  font-weight: bold;
+}
+
+.post-content :deep(h3) {
+  font-size: 1.17em;
+  margin: 0.83em 0;
+  font-weight: bold;
+}
+
+.post-content :deep(p) {
+  margin: 1em 0;
+}
+
+.post-content :deep(ul), .post-content :deep(ol) {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.post-content :deep(li) {
+  margin: 0.5em 0;
+}
+
+.post-content :deep(code) {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+}
+
+.post-content :deep(pre) {
+  background-color: #f5f5f5;
+  padding: 1em;
+  border-radius: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.post-content :deep(pre code) {
+  background-color: transparent;
+  padding: 0;
+}
+
+.post-content :deep(blockquote) {
+  border-left: 4px solid #ddd;
+  padding-left: 1em;
+  margin: 1em 0;
+  color: #666;
+}
+
+.post-content :deep(a) {
+  color: #409eff;
+  text-decoration: none;
+}
+
+.post-content :deep(a:hover) {
+  text-decoration: underline;
+}
+
+.post-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.post-content :deep(th),
+.post-content :deep(td) {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
 .post-actions {
   border-top: 1px solid #eee;
   padding-top: 20px;
@@ -148,5 +233,40 @@ export default {
 .no-post {
   text-align: center;
   padding: 40px 0;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .post-detail-container {
+    width: 100%;
+  }
+  
+  .post-detail-card {
+    padding: 12px;
+  }
+  
+  .post-title {
+    font-size: 20px;
+  }
+  
+  .post-content {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  .post-content :deep(pre) {
+    padding: 0.8em;
+    font-size: 13px;
+  }
+  
+  .post-content :deep(table) {
+    font-size: 13px;
+  }
+  
+  .post-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+  }
 }
 </style>
