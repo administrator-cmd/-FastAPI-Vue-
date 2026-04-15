@@ -19,7 +19,13 @@
               <template #header>
                 <div class="card-header">
                   <span class="post-title">{{ post.title }}</span>
-                  <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
+                  <div class="card-tags">
+                    <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
+                    <el-tag type="danger" size="small">
+                      <el-icon><Star /></el-icon>
+                      {{ getLikeCount(post.id) }}
+                    </el-tag>
+                  </div>
                 </div>
               </template>
               <div class="post-content">
@@ -82,10 +88,14 @@
 import { computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
+import { Star } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 export default {
   name: 'Home',
+  components: {
+    Star
+  },
   setup() {
     const store = useStore()
     const router = useRouter()
@@ -94,10 +104,22 @@ export default {
     const loading = computed(() => store.getters['posts/loading'])
     const isLoggedIn = computed(() => store.getters['auth/isLoggedIn'])
     
+    const getLikeCount = (postId) => {
+      return store.getters['likes/getLikeCount'](postId)
+    }
+    
     const fetchPosts = async () => {
       try {
         const result = await store.dispatch('posts/fetchPosts')
         console.log('文章列表:', result)
+        // 加载每篇文章的点赞数
+        for (const post of result) {
+          try {
+            await store.dispatch('likes/fetchLikeCount', post.id)
+          } catch (error) {
+            console.error(`加载文章 ${post.id} 的点赞数失败:`, error)
+          }
+        }
       } catch (error) {
         console.error('获取文章列表失败:', error)
       }
@@ -130,7 +152,8 @@ export default {
       isLoggedIn,
       goToPost,
       truncateContent,
-      formatDate
+      formatDate,
+      getLikeCount
     }
   }
 }
@@ -169,6 +192,12 @@ export default {
 .card-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.card-tags {
+  display: flex;
+  gap: 8px;
   align-items: center;
 }
 
@@ -231,6 +260,11 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+  
+  .card-tags {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 </style>

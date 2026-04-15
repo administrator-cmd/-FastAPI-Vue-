@@ -55,7 +55,7 @@ export default {
       // 检查是否已有登录状态
       const token = localStorage.getItem('token')
       if (token) {
-        store.commit('auth/setToken', token)
+        store.commit('auth/SET_TOKEN', token)
         // 可以在这里获取用户信息
       }
     })

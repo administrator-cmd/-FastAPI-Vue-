@@ -18,8 +18,10 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # 定义与Post和Comment模型的一对多关系
-    posts = relationship("Post", back_populates="author", cascade="all,delete")
-    comments = relationship("Comment", back_populates="author")
+    posts = relationship("Post", back_populates="author", cascade="all,delete-orphan") # 解释： 删除用户时，删除用户下的所有文章
+    comments = relationship("Comment", back_populates="author", cascade="all,delete-orphan") # 解释： 删除用户时，删除用户下的所有评论
 
+    # 定义与Like模型的一对多关系
+    likes = relationship("Like", back_populates="author", cascade="all,delete-orphan") # 解释： 删除用户时，删除用户下的所有点赞记录
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"

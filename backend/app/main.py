@@ -13,7 +13,7 @@ import time
 
 from app.database import create_tables
 from app.dependencies import get_async_db
-from app.api.v1 import users, posts, comments
+from app.api.v1 import users, posts, comments, like
 import fastapi_cdn_host
 
 
@@ -224,5 +224,6 @@ async def health_check(db: AsyncSession = Depends(get_async_db)):
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(posts.router, prefix="/api/v1")
 app.include_router(comments.router, prefix="/api/v1")
+app.include_router(like.router, prefix="/api/v1")
 
 logger.info("API路由注册完成")

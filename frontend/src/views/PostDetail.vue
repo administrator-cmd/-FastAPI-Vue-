@@ -9,8 +9,22 @@
         <div class="post-meta">
           <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
           <el-tag type="warning" size="small">作者: {{ post.author_username || post.author_id }}</el-tag>
+          <el-tag type="danger" size="small">
+            <el-icon><Star /></el-icon>
+            {{ likeCount }}
+          </el-tag>
         </div>
         <div class="post-content" v-html="post.content_html"></div>
+        <div class="post-interactions" v-if="currentUser">
+          <el-button 
+            :type="isLiked ? 'danger' : 'default'" 
+            @click="handleLike"
+            :loading="likeLoading"
+          >
+            <el-icon><Star /></el-icon>
+            {{ isLiked ? '已点赞' : '点赞' }}
+          </el-button>
+        </div>
         <div class="post-actions" v-if="canEdit">
           <el-button type="primary" @click="editPost">编辑</el-button>
           <el-popconfirm 
@@ -99,10 +113,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Star } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 export default {
   name: 'PostDetail',
+  components: {
+    Star
+  },
   setup() {
     const store = useStore()
     const router = useRouter()
@@ -112,11 +130,14 @@ export default {
     const postId = parseInt(route.params.id)
     const newComment = ref('')
     const commentLoading = ref(false)
+    const likeLoading = ref(false)
     
     const post = computed(() => store.getters['posts/currentPost'])
     const currentUser = computed(() => store.getters['auth/currentUser'])
     const comments = computed(() => store.getters['comments/comments'])
     const commentsLoading = computed(() => store.getters['comments/loading'])
+    const likeCount = computed(() => store.getters['likes/getLikeCount'](postId))
+    const isLiked = computed(() => store.getters['likes/isLiked'](postId))
     
     const canEdit = computed(() => {
       return post.value && currentUser.value && post.value.author_id === currentUser.value.id
@@ -195,9 +216,34 @@ export default {
       }
     }
     
-    onMounted(() => {
-      loadPost()
-      loadComments()
+    const handleLike = async () => {
+      if (!currentUser.value) {
+        ElMessage.warning('请先登录')
+        router.push('/login')
+        return
+      }
+      
+      likeLoading.value = true
+      try {
+        await store.dispatch('likes/toggleLike', postId)
+        ElMessage.success(isLiked.value ? '取消点赞成功' : '点赞成功')
+      } catch (error) {
+        console.error('点赞操作失败:', error)
+        ElMessage.error('操作失败')
+      } finally {
+        likeLoading.value = false
+      }
+    }
+    
+    onMounted(async () => {
+      await loadPost()
+      await loadComments()
+      // 加载点赞数
+      try {
+        await store.dispatch('likes/fetchLikeCount', postId)
+      } catch (error) {
+        console.error('加载点赞数失败:', error)
+      }
     })
     
     return {
@@ -209,12 +255,16 @@ export default {
       commentsLoading,
       newComment,
       commentLoading,
+      likeCount,
+      isLiked,
+      likeLoading,
       canDeleteComment,
       formatDate,
       editPost,
       deletePost,
       submitComment,
-      handleDeleteComment
+      handleDeleteComment,
+      handleLike
     }
   }
 }
