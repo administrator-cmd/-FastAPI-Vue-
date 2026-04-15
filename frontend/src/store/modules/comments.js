@@ -23,7 +23,7 @@ const mutations = {
 const actions = {
   fetchComments({ commit }, postId) {
     commit('SET_LOADING', true)
-    return request.get(`/posts/${postId}/comments`)
+    return request.get(`/comments/posts/${postId}/comments`)
       .then(response => {
         commit('SET_COMMENTS', response)
         commit('SET_LOADING', false)
@@ -36,7 +36,7 @@ const actions = {
   },
   
   createComment({ commit }, { postId, commentData }) {
-    return request.post(`/posts/${postId}/comments`, commentData)
+    return request.post(`/comments/posts/${postId}/comments`, commentData)
       .then(response => {
         commit('ADD_COMMENT', response)
         return response

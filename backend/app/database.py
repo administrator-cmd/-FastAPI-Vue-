@@ -1,4 +1,3 @@
-# v6_dependency/database.py - 只负责数据库配置
 """
 异步数据库配置模块
 配置异步SQLAlchemy和数据库连接
@@ -15,7 +14,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./blog_v4.db")
 # 创建异步数据库引擎
 async_engine = create_async_engine(
     DATABASE_URL,
-    echo=False,  # 设置为True，我们就可以看到执行的SQL语句了
+    echo=False,
     future=True
 )
 

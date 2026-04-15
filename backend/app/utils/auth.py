@@ -1,17 +1,19 @@
+"""
+JWT 认证工具
+"""
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 
 
-
 SECRET_KEY = "your-secret-key"
-ALGORITHM = "HS256" # 加密算法
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 # 30分钟后令牌过期
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    
+    """创建 JWT Token"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -21,11 +23,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def verify_token(token: str) -> dict:
-    try:
-        # 解码JWT algorithms=[ALGORITHM] 表示使用HS256算法进行解码
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
+def verify_token(token: str) -> dict:
+    """验证 JWT Token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
         user_id_str: str = payload.get("sub")
         if user_id_str is None:
             raise HTTPException(
@@ -34,7 +37,7 @@ def verify_token(token: str) -> dict:
                 headers={"WWW-Authenticate": "Bearer"},
             )
         try:
-            user_id  = int(user_id_str)
+            user_id = int(user_id_str)
         except ValueError:
             raise HTTPException(
                 status_code=401,

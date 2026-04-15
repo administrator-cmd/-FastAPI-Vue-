@@ -112,33 +112,6 @@ const actions = {
       .catch(error => {
         throw error
       })
-  },
-  fetchUserPosts({ commit }, userId) {
-    return request.get(`/users/${userId}/posts`)
-      .then(response => {
-        return response
-      })
-      .catch(error => {
-        throw error
-      })
-  },
-  fetchAllUsers({ commit }) {
-    return request.get('/users')
-      .then(response => {
-        return response
-      })
-      .catch(error => {
-        throw error
-      })
-  },
-  fetchHealth({ commit }) {
-    return request.get('/health')
-      .then(response => {
-        return response
-      })
-      .catch(error => {
-        throw error
-      })
   }
 }
 
