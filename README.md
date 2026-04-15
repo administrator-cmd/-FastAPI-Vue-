@@ -25,24 +25,28 @@
 ```
 Fastapi-blog/
 ├── backend/
-│   ├── main.py          # FastAPI 应用入口
-│   ├── models.py        # 数据库模型
-│   ├── schemas.py       # Pydantic 数据验证
-│   ├── crud.py          # 数据库操作
-│   ├── auth.py          # JWT 认证
-│   ├── database.py      # 数据库连接
-│   ├── dependencies.py  # 依赖注入
-│   ├── utils.py         # 工具函数
-│   └── requirements.txt # Python 依赖
+│   ├── app/
+│   │   ├── api/v1/        # API 路由（按业务模块拆分）
+│   │   │   ├── users.py   # 用户相关接口
+│   │   │   ├── posts.py   # 文章相关接口
+│   │   │   └── comments.py # 评论相关接口
+│   │   ├── crud/          # 数据库操作层
+│   │   ├── models/        # 数据库模型
+│   │   ├── schemas/       # Pydantic 数据验证
+│   │   ├── utils/         # 工具函数
+│   │   ├── main.py        # FastAPI 应用入口
+│   │   ├── database.py    # 数据库连接
+│   │   └── dependencies.py # 依赖注入
+│   └── requirements.txt   # Python 依赖
 ├── frontend/
 │   ├── src/
-│   │   ├── views/       # 页面组件
-│   │   ├── store/       # Vuex 状态管理
-│   │   ├── router/      # 路由配置
-│   │   └── utils/       # 工具函数
+│   │   ├── views/         # 页面组件
+│   │   ├── store/modules/ # Vuex 状态管理
+│   │   ├── router/        # 路由配置
+│   │   └── utils/         # 工具函数
 │   ├── package.json
 │   └── vite.config.js
-└── alembic.ini          # 数据库迁移配置
+└── README.md
 ```
 
 
@@ -52,9 +56,11 @@ Fastapi-blog/
 - ✅ Markdown 文章编辑（EasyMDE 编辑器）
 - ✅ 文章 CRUD 操作
 - ✅ 文章内容自动转换为 HTML
+- ✅ 评论系统（创建、查看、删除）
 - ✅ 用户个人中心
 - ✅ 响应式设计，支持移动端
 - ✅ RESTful API 设计
+- ✅ 模块化架构（按业务垂直拆分）
 - ✅ 请求拦截器自动携带 Token
 
 ## 快速开始
@@ -69,7 +75,7 @@ cd backend
 pip install -r requirements.txt
 
 # 启动服务
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 
@@ -93,51 +99,61 @@ npm run dev
 ```
 
 
-前端服务运行在 `http://localhost:5173`
+前端服务运行在 `http://localhost:3000`
 
 ## API 接口
-
-### 认证接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/auth/register` | 用户注册 |
-| POST | `/auth/login` | 用户登录 |
-| GET | `/auth/me` | 获取当前用户信息 |
-
-### 文章接口
-
-| 方法 | 路径 | 说明 | 需要认证 |
-|------|------|------|----------|
-| GET | `/posts` | 获取文章列表 | 否 |
-| GET | `/posts/{post_id}` | 获取文章详情 | 否 |
-| POST | `/posts` | 创建文章 | 是 |
-| PUT | `/posts/{post_id}` | 更新文章 | 是 |
-| DELETE | `/posts/{post_id}` | 删除文章 | 是 |
 
 ### 用户接口
 
 | 方法 | 路径 | 说明 | 需要认证 |
 |------|------|------|----------|
-| GET | `/users/{user_id}` | 获取用户信息 | 是 |
-| GET | `/users/{user_id}/posts` | 获取用户文章列表 | 是 |
+| POST | `/api/v1/users/register` | 用户注册 | 否 |
+| POST | `/api/v1/users/login` | 用户登录（参数：account, password） | 否 |
+| GET | `/api/v1/users/profile` | 获取当前用户信息 | 是 |
+| GET | `/api/v1/users` | 获取用户列表 | 否 |
+
+### 文章接口
+
+| 方法 | 路径 | 说明 | 需要认证 |
+|------|------|------|----------|
+| GET | `/api/v1/posts` | 获取文章列表（支持分页和搜索） | 否 |
+| GET | `/api/v1/posts/{post_id}` | 获取文章详情 | 否 |
+| POST | `/api/v1/posts` | 创建文章 | 是 |
+| PUT | `/api/v1/posts/{post_id}` | 更新文章 | 是 |
+| DELETE | `/api/v1/posts/{post_id}` | 删除文章 | 是 |
+| GET | `/api/v1/posts/user/{user_id}/posts` | 获取指定用户的文章 | 否 |
+
+### 评论接口
+
+| 方法 | 路径 | 说明 | 需要认证 |
+|------|------|------|----------|
+| GET | `/api/v1/comments/posts/{post_id}/comments` | 获取文章评论列表 | 否 |
+| POST | `/api/v1/comments/posts/{post_id}/comments` | 创建评论 | 是 |
+| DELETE | `/api/v1/comments/{comment_id}` | 删除评论 | 是 |
+
+**注意：** 评论接口路径为 `/comments/posts/{id}/comments`，不是 `/posts/{id}/comments`
 
 ## 配置说明
 
 ### 前端代理配置
 
-`frontend/vite.config.js` 已配置反向代理，将 `/api` 请求转发到后端：
+`frontend/vite.config.js` 已配置反向代理，将 `/api` 请求转发到后端并添加版本前缀：
 
 ```javascript
 server: {
   proxy: {
     '/api': {
-      target: 'http://localhost:8000',
-      changeOrigin: true
+      target: 'http://127.0.0.1:8000',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api/, '/api/v1')
     }
   }
 }
 ```
+
+前端调用示例：
+- `request.get('/posts')` → 后端 `/api/v1/posts`
+- `request.get('/comments/posts/1/comments')` → 后端 `/api/v1/comments/posts/1/comments`
 
 
 ### 请求拦截器
@@ -170,12 +186,15 @@ axios.interceptors.request.use(config => {
 
 ### 添加新接口
 
-1. 在 `backend/models.py` 定义数据库模型
-2. 在 `backend/schemas.py` 定义 Pydantic 模型
-3. 在 `backend/crud.py` 实现数据库操作
-4. 在 `backend/main.py` 注册路由
-5. 在 `frontend/src/store/modules/` 添加 Vuex actions
-6. 在 Vue 组件中调用
+1. 在 `backend/app/models/` 定义数据库模型
+2. 在 `backend/app/schemas/` 定义 Pydantic 模型
+3. 在 `backend/app/crud/` 实现数据库操作
+4. 在 `backend/app/api/v1/` 创建或修改路由文件
+5. 在 `backend/app/main.py` 注册路由
+6. 在 `frontend/src/store/modules/` 添加 Vuex actions
+7. 在 Vue 组件中调用
+
+**注意：** 前端调用时不需要加 `/api/v1` 前缀，Vite 代理会自动处理。
 
 ### 数据库迁移
 
