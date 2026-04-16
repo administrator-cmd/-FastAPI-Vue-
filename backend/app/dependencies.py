@@ -5,10 +5,10 @@ from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from app.database import AsyncSession, AsyncSessionLocal
+from app.core.database import AsyncSession, AsyncSessionLocal
 from app.utils.auth import verify_token
-from app.crud import user as user_crud
-from app.crud import post as post_crud
+from app.repositories import user as user_crud
+from app.repositories import post as post_crud
 
 
 async def get_async_db():

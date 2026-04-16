@@ -87,7 +87,7 @@ const actions = {
       })
   },
   fetchUserPosts({ commit }, userId) {
-    return request.get(`/users/${userId}/posts`)
+    return request.get(`/posts/user/${userId}`)
       .then(response => {
         return response
       })

@@ -92,8 +92,18 @@
             <span class="comment-time">{{ formatDate(comment.created_at) }}</span>
           </div>
           <div class="comment-content">{{ comment.content }}</div>
-          <div class="comment-actions" v-if="canDeleteComment(comment)">
+          <div class="comment-actions">
+            <el-button 
+              :type="isCommentLiked(comment.id) ? 'danger' : 'default'" 
+              size="small" 
+              link
+              @click="handleCommentLike(comment.id)"
+            >
+              <el-icon><Star /></el-icon>
+              {{ getCommentLikeCount(comment.id) }}
+            </el-button>
             <el-popconfirm 
+              v-if="canDeleteComment(comment)"
               title="确定要删除这条评论吗?" 
               @confirm="handleDeleteComment(comment.id)"
             >
@@ -138,6 +148,8 @@ export default {
     const commentsLoading = computed(() => store.getters['comments/loading'])
     const likeCount = computed(() => store.getters['likes/getLikeCount'](postId))
     const isLiked = computed(() => store.getters['likes/isLiked'](postId))
+    const getCommentLikeCount = (commentId) => store.getters['commentLikes/getCommentLikeCount'](commentId)
+    const isCommentLiked = (commentId) => store.getters['commentLikes/isCommentLiked'](commentId)
     
     const canEdit = computed(() => {
       return post.value && currentUser.value && post.value.author_id === currentUser.value.id
@@ -160,6 +172,19 @@ export default {
     const loadComments = async () => {
       try {
         await store.dispatch('comments/fetchComments', postId)
+        // 加载每条评论的点赞数和状态
+        if (comments.value.length > 0) {
+          for (const comment of comments.value) {
+            try {
+              await store.dispatch('commentLikes/fetchCommentLikeCount', comment.id)
+              if (currentUser.value) {
+                await store.dispatch('commentLikes/fetchUserCommentLikeStatus', comment.id)
+              }
+            } catch (error) {
+              console.error(`加载评论 ${comment.id} 点赞信息失败:`, error)
+            }
+          }
+        }
       } catch (error) {
         console.error('加载评论失败:', error)
       }
@@ -225,13 +250,29 @@ export default {
       
       likeLoading.value = true
       try {
+        const wasLiked = isLiked.value
         await store.dispatch('likes/toggleLike', postId)
-        ElMessage.success(isLiked.value ? '取消点赞成功' : '点赞成功')
+        ElMessage.success(wasLiked ? '取消点赞成功' : '点赞成功')
       } catch (error) {
         console.error('点赞操作失败:', error)
         ElMessage.error('操作失败')
       } finally {
         likeLoading.value = false
+      }
+    }
+    
+    const handleCommentLike = async (commentId) => {
+      if (!currentUser.value) {
+        ElMessage.warning('请先登录')
+        router.push('/login')
+        return
+      }
+      
+      try {
+        await store.dispatch('commentLikes/toggleCommentLike', commentId)
+      } catch (error) {
+        console.error('评论点赞操作失败:', error)
+        ElMessage.error('操作失败')
       }
     }
     
@@ -243,6 +284,14 @@ export default {
         await store.dispatch('likes/fetchLikeCount', postId)
       } catch (error) {
         console.error('加载点赞数失败:', error)
+      }
+      // 加载用户点赞状态
+      if (currentUser.value) {
+        try {
+          await store.dispatch('likes/fetchUserLikeStatus', postId)
+        } catch (error) {
+          console.error('加载点赞状态失败:', error)
+        }
       }
     })
     
@@ -264,7 +313,10 @@ export default {
       deletePost,
       submitComment,
       handleDeleteComment,
-      handleLike
+      handleLike,
+      getCommentLikeCount,
+      isCommentLiked,
+      handleCommentLike
     }
   }
 }

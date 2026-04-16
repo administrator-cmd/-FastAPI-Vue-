@@ -1,19 +1,23 @@
 """
-博客系统API v8.0 - FastAPI应用入口
-模块化重构版本
+博客系统API - FastAPI应用入口
+模块化架构版本
 """
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
 import time
 
-from app.database import create_tables
+from app.core.database import create_tables
 from app.dependencies import get_async_db
-from app.api.v1 import users, posts, comments, like
+from app.api.v1 import users, posts, comments, like, comment_like
+from app.core.exceptions import (
+    http_exception_handler,
+    validation_exception_handler,
+    global_exception_handler
+)
 import fastapi_cdn_host
 
 
@@ -27,9 +31,9 @@ logger = logging.getLogger(__name__)
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="博客系统API v8.0",
-    description="模块化重构版本 - 按业务模块拆分",
-    version="8.0.0"
+    title="博客系统API",
+    description="基于 FastAPI + SQLAlchemy 的模块化博客系统",
+    version="1.0.0"
 )
 
 # 添加CORS中间件
@@ -46,17 +50,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# CDN 优化
+# CDN 优化（加速 Swagger 文档加载）
 fastapi_cdn_host.patch_docs(app)
 
-logger.info("CORS中间件已配置，支持前端跨域访问")
+logger.info("✓ CORS 中间件已配置")
 
 
 # ===== 中间件 =====
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """请求日志中间件"""
+    """请求日志中间件 - 记录所有请求的详细信息"""
     start_time = time.time()
     
     logger.info(
@@ -94,74 +98,11 @@ async def log_requests(request: Request, call_next):
 
 
 # ===== 异常处理 =====
+# 注册异常处理器（从 utils.exceptions 导入）
 
-@app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """HTTP异常处理器"""
-    logger.error(
-        "HTTP异常: %d - %s - 请求: %s %s",
-        exc.status_code,  
-        exc.detail,       
-        request.method,  
-        request.url       
-    )
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={
-            "error": True,
-            "status_code": exc.status_code,
-            "message": exc.detail,
-            "path": request.url.path,
-            "timestamp": time.time()
-        }
-    )
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """数据验证异常处理器"""
-    error_messages = [error['msg'] for error in exc.errors()]
-    logger.warning(
-        "数据验证失败: %s - 请求: %s %s",
-        error_messages,
-        request.method, 
-        request.url
-    )
-
-    return JSONResponse(
-        status_code=422,
-        content={
-            "error": True,
-            "status_code": 422,
-            "message": "数据验证失败",
-            "details": error_messages,
-            "path": str(request.url),
-            "timestamp": time.time()
-        }
-    )
-
-
-@app.exception_handler(Exception)
-async def exception_handler(request: Request, exc: Exception):
-    """全局异常处理器"""
-    logger.error(
-        "未处理异常：%s: %s - 请求：%s %s",
-        type(exc).__name__, 
-        str(exc), 
-        request.method, 
-        request.url,
-        exc_info=True
-    )
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": True,
-            "status_code": 500,
-            "message": "服务器内部错误",
-            "path": str(request.url),
-            "timestamp": time.time()
-        }
-    )
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(Exception, global_exception_handler)
 
 
 # ===== 应用启动事件 =====
@@ -170,7 +111,7 @@ async def exception_handler(request: Request, exc: Exception):
 async def startup_event():
     """应用启动时创建数据表"""
     await create_tables()
-    logger.info("数据库表创建完成")
+    logger.info("✓ 数据库表创建完成")
 
 
 # ===== 根路由 =====
@@ -180,25 +121,26 @@ async def root():
     """欢迎页面"""
     logger.info("访问根路由")
     return {
-        "message": "欢迎使用博客系统API v8.0",
-        "version": "8.0.0",
+        "message": "欢迎使用博客系统API",
+        "version": "1.0.0",
         "docs": "/docs",
         "features": [
             "用户管理", 
             "文章管理", 
             "评论管理",
+            "点赞功能",
             "JWT认证",
-            "模块化架构"
-        ],
+            "Markdown支持"
+        ]
     }
 
 
 @app.get("/health")
 async def health_check(db: AsyncSession = Depends(get_async_db)):
-    """健康检查API"""
+    """健康检查API - 用于监控服务状态"""
     try:
-        from app.crud import user as user_crud
-        from app.crud import post as post_crud
+        from app.repositories import user as user_crud
+        from app.repositories import post as post_crud
         
         user_count = await user_crud.get_user_count(db)
         post_count = await post_crud.get_post_count(db)
@@ -207,11 +149,11 @@ async def health_check(db: AsyncSession = Depends(get_async_db)):
         
         return {
             "status": "healthy",
-            "version": "8.0.0",
+            "version": "1.0.0",
             "users_count": user_count,
             "posts_count": post_count,
-            "database": "SQLite with async support",
-            "architecture": "Modular design"
+            "database": "SQLite (Async)",
+            "architecture": "Modular"
         }
     except Exception as e:
         logger.error(f"健康检查失败：{str(e)}")
@@ -225,5 +167,7 @@ app.include_router(users.router, prefix="/api/v1")
 app.include_router(posts.router, prefix="/api/v1")
 app.include_router(comments.router, prefix="/api/v1")
 app.include_router(like.router, prefix="/api/v1")
+app.include_router(comment_like.router, prefix="/api/v1")
 
-logger.info("API路由注册完成")
+logger.info("✓ API路由注册完成")
+logger.info("✓ 博客系统启动成功")
