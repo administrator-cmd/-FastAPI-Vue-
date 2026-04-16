@@ -1,0 +1,253 @@
+/* 全局响应式样式 - 移动优先设计 */
+
+/* 基础设置 - 确保所有内容在小屏幕上正常显示 */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* 平板端适配 (768px以下) */
+@media (max-width: 768px) {
+  /* 容器宽度100%，内边距左右16px */
+  .el-row {
+    width: 100%;
+    margin: 0 !important;
+  }
+  
+  /* 所有列占满宽度 */
+  .el-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    padding: 0 !important;
+  }
+  
+  /* 卡片组件优化 */
+  .el-card {
+    margin-bottom: 12px;
+  }
+  
+  .el-card__header {
+    padding: 12px 16px;
+  }
+  
+  .el-card__body {
+    padding: 16px;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  .el-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+  
+  .el-button--small {
+    min-height: 36px;
+    padding: 8px 15px;
+    font-size: 14px;
+  }
+  
+  /* 输入框字体不小于16px，防止iOS自动缩放 */
+  .el-input__inner,
+  .el-textarea__inner {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  
+  /* 表格优化 */
+  .el-table {
+    font-size: 14px;
+  }
+  
+  .el-table th,
+  .el-table td {
+    padding: 8px 0;
+  }
+  
+  /* 表单标签优化 */
+  .el-form-item__label {
+    font-size: 14px;
+  }
+  
+  /* 菜单项点击区域 */
+  .el-menu-item,
+  .el-sub-menu__title {
+    min-height: 48px;
+    line-height: 48px;
+  }
+  
+  /* 对话框优化 */
+  .el-dialog {
+    width: 90% !important;
+    margin-top: 5vh !important;
+  }
+  
+  .el-dialog__body {
+    padding: 16px;
+  }
+  
+  /* 消息提示优化 */
+  .el-message {
+    min-width: 300px;
+    max-width: 90%;
+  }
+  
+  /* 图片自适应 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* 代码块优化 */
+  pre,
+  code {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  /* 更紧凑的内边距 */
+  .el-card__header {
+    padding: 10px 12px;
+  }
+  
+  .el-card__body {
+    padding: 12px;
+  }
+  
+  /* 标题适当缩小 */
+  h1 {
+    font-size: 22px;
+  }
+  
+  h2 {
+    font-size: 18px;
+  }
+  
+  h3 {
+    font-size: 16px;
+  }
+  
+  /* 正文不小于16px */
+  body,
+  p,
+  div,
+  span {
+    font-size: 16px;
+  }
+  
+  /* 按钮进一步优化 */
+  .el-button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .el-button + .el-button {
+    margin-left: 0 !important;
+  }
+  
+  /* 小按钮保持合适尺寸 */
+  .el-button--small {
+    width: auto;
+    min-height: 36px;
+  }
+  
+  /* 表格改为卡片式 */
+  .el-table--border,
+  .el-table--group {
+    border: none;
+  }
+  
+  /* 表单布局优化 */
+  .el-form-item {
+    margin-bottom: 16px;
+  }
+  
+  /* 下拉菜单优化 */
+  .el-select {
+    width: 100%;
+  }
+  
+  /* 分页器优化 */
+  .el-pagination {
+    justify-content: center;
+  }
+  
+  .el-pagination .btn-prev,
+  .el-pagination .btn-next,
+  .el-pagination .el-pager li {
+    min-width: 36px;
+    height: 36px;
+    line-height: 36px;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 增加触摸目标大小 */
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 移除hover效果，改用active */
+  .el-button:hover {
+    opacity: 1;
+  }
+  
+  .el-button:active {
+    opacity: 0.8;
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* 横屏时调整高度相关元素 */
+  .el-dialog {
+    margin-top: 2vh !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* 编辑器高度调整 */
+  .CodeMirror {
+    min-height: 200px !important;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .el-menu,
+  .el-button,
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .post-content {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+}

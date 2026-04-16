@@ -18,7 +18,7 @@
 - **Vue Router** - 路由管理
 - **EasyMDE** - Markdown 编辑器
 - **Axios** - HTTP 客户端
-- **响应式设计** - 支持移动端
+- **响应式设计** - 完整移动端适配（768px/480px 断点）
 
 ## 项目结构
 
@@ -41,8 +41,11 @@ Fastapi-blog/
 │   │   ├── views/         # 页面组件
 │   │   ├── store/modules/ # Vuex 状态管理
 │   │   ├── router/        # 路由配置
+│   │   ├── styles/        # 全局样式（含响应式）
 │   │   └── utils/         # 工具函数
 │   ├── package.json
+│   ├── RESPONSIVE_GUIDE.md  # 响应式适配说明
+│   ├── TESTING_GUIDE.md     # 测试指南
 │   └── vite.config.js
 └── README.md
 ```
@@ -56,7 +59,7 @@ Fastapi-blog/
 - ✅ 评论系统（创建、查看、删除）
 - ✅ 点赞功能（文章点赞、评论点赞）
 - ✅ 用户个人中心
-- ✅ 响应式设计，完美支持移动端
+- ✅ **完整移动端适配**（768px/480px 断点，触摸友好）
 - ✅ RESTful API 设计
 - ✅ 分层架构（Router → Service → Repository → Model）
 - ✅ 统一响应格式与异常处理
@@ -132,13 +135,69 @@ request.post('/users/login', data) // → 后端 /api/v1/users/login
 
 ## 移动端适配
 
-项目已优化移动端体验：
+项目已完整优化移动端体验，支持手机、平板等多种设备：
 
-- 响应式布局（768px 断点）
-- 移动端单列显示
-- 图片、代码块、表格自适应
-- 触摸友好的按钮尺寸
-- 表单移动端优化
+### 响应式设计
+- **媒体查询断点**：768px（平板）、480px（手机）
+- **移动优先**：从小屏幕开始设计，逐步增强到大屏幕
+- **容器自适应**：100% 宽度，左右内边距 16px/12px
+
+### 布局优化
+- ✅ **导航栏**：平板可换行，手机垂直堆叠
+- ✅ **文章列表**：移动端单列垂直排列，侧边栏下移
+- ✅ **表格转换**：手机端表格自动转换为卡片式布局
+- ✅ **图片自适应**：所有图片 max-width: 100%
+
+### 交互优化
+- ✅ **触摸友好**：所有按钮和链接 ≥ 44x44px
+- ✅ **字体优化**：正文不小于 16px，防止 iOS 自动缩放
+- ✅ **输入框**：字体固定 16px，避免 iOS 自动放大
+- ✅ **代码块**：支持横向滚动，字体自适应
+
+### 测试方法
+
+#### 浏览器开发者工具测试
+```bash
+# 启动前端开发服务器
+cd frontend
+npm run dev
+```
+
+1. 打开 Chrome DevTools (F12)
+2. 点击设备工具栏图标或按 `Ctrl+Shift+M`
+3. 选择预设设备进行测试：
+   - iPhone SE (375×667)
+   - iPhone 12 Pro (390×844)
+   - iPad (768×1024)
+
+#### 真机测试
+```bash
+# 允许局域网访问
+cd frontend
+npm run dev -- --host
+```
+然后在手机浏览器访问显示的 IP 地址（如：http://192.168.1.100:5173）
+
+### 技术实现
+
+全局响应式样式文件：`frontend/src/styles/responsive.css`
+
+各页面组件均包含独立的媒体查询样式：
+```css
+/* 平板端适配 */
+@media (max-width: 768px) {
+  /* 样式规则 */
+}
+
+/* 手机端适配 */
+@media (max-width: 480px) {
+  /* 样式规则 */
+}
+```
+
+详细文档请参考：
+- [RESPONSIVE_GUIDE.md](frontend/RESPONSIVE_GUIDE.md) - 响应式适配详细说明
+- [TESTING_GUIDE.md](frontend/TESTING_GUIDE.md) - 完整测试指南
 
 ## 开发指南
 
