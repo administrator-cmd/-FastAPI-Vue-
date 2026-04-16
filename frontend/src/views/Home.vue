@@ -183,6 +183,7 @@ export default {
 .post-card {
   margin-bottom: 20px;
   cursor: pointer;
+  min-height: 44px;
 }
 
 .post-card:hover {
@@ -210,6 +211,7 @@ export default {
   margin: 15px 0;
   color: #666;
   line-height: 1.6;
+  font-size: 16px;
 }
 
 .post-author {
@@ -227,32 +229,37 @@ export default {
   margin: 20px 0;
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .home {
     width: 100%;
+    padding: 0 16px;
   }
   
-  .home-row {
-    flex-direction: column;
+  /* 文章列表改为单列布局 */
+  :deep(.el-col-18),
+  :deep(.el-col-6) {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 100%;
   }
   
   .posts-container,
   .sidebar {
-    padding: 12px;
+    padding: 16px;
     width: 100%;
   }
   
   .sidebar {
-    margin-top: 12px;
+    margin-top: 16px;
   }
   
   .post-title {
-    font-size: 16px;
+    font-size: 17px;
   }
   
   .post-content {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
   }
   
@@ -265,6 +272,45 @@ export default {
   .card-tags {
     width: 100%;
     justify-content: flex-start;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  :deep(.el-button) {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .home {
+    padding: 0 12px;
+  }
+  
+  .posts-container,
+  .sidebar {
+    padding: 12px;
+  }
+  
+  .post-title {
+    font-size: 16px;
+  }
+  
+  .post-content {
+    font-size: 16px;
+  }
+  
+  .post-author {
+    font-size: 13px;
+  }
+  
+  /* 侧边栏按钮垂直排列 */
+  :deep(.sidebar .el-button) {
+    display: block;
+    width: 100%;
+    margin-top: 8px !important;
+    margin-left: 0 !important;
   }
 }
 </style>

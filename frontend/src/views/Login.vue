@@ -123,11 +123,40 @@ export default {
   padding: 20px;
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .login-form {
     width: 100% !important;
+    margin: 0 16px;
+    padding: 16px;
+  }
+  
+  /* 输入框字体不小于16px，防止iOS自动缩放 */
+  :deep(.el-input__inner) {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  :deep(.el-button) {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .login-form {
     margin: 0 12px;
+    padding: 12px;
+  }
+  
+  :deep(.el-card__body) {
+    padding: 12px;
+  }
+  
+  h2 {
+    font-size: 20px;
   }
 }
 </style>

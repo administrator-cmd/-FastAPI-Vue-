@@ -5,6 +5,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import './styles/responsive.css'
 
 const app = createApp(App)
 

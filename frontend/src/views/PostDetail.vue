@@ -527,14 +527,15 @@ export default {
   text-align: right;
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .post-detail-container {
     width: 100%;
+    padding: 0 16px;
   }
   
   .post-detail-card {
-    padding: 12px;
+    padding: 16px;
   }
   
   .post-title {
@@ -542,12 +543,79 @@ export default {
   }
   
   .post-content {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.7;
   }
   
   .post-content :deep(pre) {
     padding: 0.8em;
+    font-size: 14px;
+  }
+  
+  .post-content :deep(table) {
+    font-size: 14px;
+  }
+  
+  .post-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  :deep(.el-button) {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+  }
+  
+  /* 评论区优化 */
+  .comments-section {
+    padding: 16px;
+  }
+  
+  .comment-form :deep(.el-textarea__inner) {
+    font-size: 16px;
+  }
+  
+  .comment-content {
+    font-size: 15px;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .post-detail-container {
+    padding: 0 12px;
+  }
+  
+  .post-detail-card {
+    padding: 12px;
+  }
+  
+  .post-title {
+    font-size: 18px;
+  }
+  
+  .post-content {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .post-content :deep(h1) {
+    font-size: 1.6em;
+  }
+  
+  .post-content :deep(h2) {
+    font-size: 1.3em;
+  }
+  
+  .post-content :deep(h3) {
+    font-size: 1.1em;
+  }
+  
+  .post-content :deep(pre) {
+    padding: 0.6em;
     font-size: 13px;
   }
   
@@ -555,10 +623,30 @@ export default {
     font-size: 13px;
   }
   
-  .post-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-start;
+  .comments-section {
+    padding: 12px;
+  }
+  
+  .comments-title {
+    font-size: 16px;
+  }
+  
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .comment-author {
+    font-size: 14px;
+  }
+  
+  .comment-content {
+    font-size: 16px;
+  }
+  
+  .comment-actions {
+    text-align: left;
   }
 }
 </style>

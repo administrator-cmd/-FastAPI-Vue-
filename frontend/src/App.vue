@@ -71,6 +71,7 @@ export default {
 </script>
 
 <style>
+/* 全局基础样式 */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -92,20 +93,56 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .main-content {
-    padding: 12px;
+    padding: 16px;
   }
   
+  /* 导航栏改为垂直堆叠 */
   .el-menu--horizontal {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
   }
   
   .el-menu--horizontal > .el-menu-item {
     padding: 0 12px;
     font-size: 14px;
+    height: 48px;
+    line-height: 48px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* 确保点击区域足够大 */
+  .el-menu-item,
+  .el-sub-menu__title {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  
+  /* 导航栏进一步简化 */
+  .el-menu--horizontal {
+    flex-direction: column;
+  }
+  
+  .el-menu--horizontal > .el-menu-item {
+    width: 100%;
+    text-align: center;
+    padding: 0 16px;
+    font-size: 15px;
+  }
+  
+  .flex-grow {
+    display: none;
   }
 }
 </style>

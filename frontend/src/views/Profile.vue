@@ -188,15 +188,56 @@ export default {
   padding: 40px 0;
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .profile-container {
     width: 100%;
+    padding: 0 16px;
+  }
+  
+  .profile-card,
+  .my-posts {
+    padding: 16px;
+  }
+  
+  /* 表格字体优化 */
+  :deep(.el-table) {
+    font-size: 14px;
+  }
+  
+  :deep(.el-descriptions__label),
+  :deep(.el-descriptions__content) {
+    font-size: 14px;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  :deep(.el-button) {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+  }
+  
+  /* 表格操作列按钮垂直排列 */
+  :deep(.el-table .cell) {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0 12px;
   }
   
   .profile-card,
   .my-posts {
     padding: 12px;
+  }
+  
+  h2 {
+    font-size: 18px;
   }
   
   :deep(.el-table) {
@@ -205,7 +246,37 @@ export default {
   
   :deep(.el-descriptions__label),
   :deep(.el-descriptions__content) {
-    font-size: 14px;
+    font-size: 13px;
+  }
+  
+  /* 表格改为卡片式布局 */
+  :deep(.el-table__header) {
+    display: none;
+  }
+  
+  :deep(.el-table__body tr) {
+    display: block;
+    margin-bottom: 12px;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    padding: 12px;
+  }
+  
+  :deep(.el-table__body td) {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  :deep(.el-table__body td:last-child) {
+    border-bottom: none;
+  }
+  
+  :deep(.el-table__body td::before) {
+    content: attr(data-label);
+    font-weight: bold;
+    margin-right: 10px;
   }
 }
 </style>

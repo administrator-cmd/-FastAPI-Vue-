@@ -180,27 +180,76 @@ export default {
   min-height: 400px;
 }
 
-/* 移动端适配 */
+/* 平板端适配 (768px以下) */
 @media (max-width: 768px) {
   .create-post-container {
     width: 100%;
+    padding: 0 16px;
+  }
+  
+  .create-post-card {
+    padding: 16px;
+  }
+  
+  :deep(.CodeMirror) {
+    min-height: 300px;
+    font-size: 16px;
+  }
+  
+  :deep(.editor-toolbar) {
+    font-size: 14px;
+  }
+  
+  :deep(.el-form-item__label) {
+    font-size: 14px;
+  }
+  
+  /* 输入框字体不小于16px，防止iOS自动缩放 */
+  :deep(.el-input__inner) {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  
+  /* 按钮点击区域至少44x44px */
+  :deep(.el-button) {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+  }
+}
+
+/* 手机端适配 (480px以下) */
+@media (max-width: 480px) {
+  .create-post-container {
+    padding: 0 12px;
   }
   
   .create-post-card {
     padding: 12px;
   }
   
+  h2 {
+    font-size: 18px;
+  }
+  
   :deep(.CodeMirror) {
-    min-height: 300px;
-    font-size: 14px;
+    min-height: 250px;
+    font-size: 15px;
   }
   
   :deep(.editor-toolbar) {
     font-size: 13px;
   }
   
+  /* 表单标签垂直排列 */
   :deep(.el-form-item__label) {
-    font-size: 14px;
+    width: 100% !important;
+    text-align: left !important;
+    margin-bottom: 8px;
+  }
+  
+  :deep(.el-form-item__content) {
+    margin-left: 0 !important;
   }
 }
 </style>
