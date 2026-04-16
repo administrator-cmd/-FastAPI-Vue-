@@ -26,16 +26,14 @@
 Fastapi-blog/
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/        # API 路由（按业务模块拆分）
-│   │   │   ├── users.py   # 用户相关接口
-│   │   │   ├── posts.py   # 文章相关接口
-│   │   │   └── comments.py # 评论相关接口
-│   │   ├── crud/          # 数据库操作层
-│   │   ├── models/        # 数据库模型
-│   │   ├── schemas/       # Pydantic 数据验证
+│   │   ├── api/v1/        # API 路由层（按业务模块拆分）
+│   │   ├── core/          # 核心配置与异常处理
+│   │   ├── models/        # 数据库模型层
+│   │   ├── repositories/  # 数据访问层
+│   │   ├── schemas/       # Pydantic 数据验证层
+│   │   ├── services/      # 业务逻辑层
 │   │   ├── utils/         # 工具函数
 │   │   ├── main.py        # FastAPI 应用入口
-│   │   ├── database.py    # 数据库连接
 │   │   └── dependencies.py # 依赖注入
 │   └── requirements.txt   # Python 依赖
 ├── frontend/
@@ -53,14 +51,15 @@ Fastapi-blog/
 ## 功能特性
 
 - ✅ 用户注册/登录（JWT 认证）
-- ✅ Markdown 文章编辑（EasyMDE 编辑器）
+- ✅ Markdown 文章编辑与渲染（EasyMDE 编辑器）
 - ✅ 文章 CRUD 操作
-- ✅ 文章内容自动转换为 HTML
 - ✅ 评论系统（创建、查看、删除）
+- ✅ 点赞功能（文章点赞、评论点赞）
 - ✅ 用户个人中心
-- ✅ 响应式设计，支持移动端
+- ✅ 响应式设计，完美支持移动端
 - ✅ RESTful API 设计
-- ✅ 模块化架构（按业务垂直拆分）
+- ✅ 分层架构（Router → Service → Repository → Model）
+- ✅ 统一响应格式与异常处理
 - ✅ 请求拦截器自动携带 Token
 
 ## 快速开始
@@ -81,9 +80,11 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 后端服务运行在 `http://localhost:8000`
 
-API 文档：
+**API 文档：**
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
+
+> 💡 **提示：** 所有 API 接口的详细文档请通过 Swagger UI 查看，会自动同步最新的接口定义。
 
 ### 前端启动
 
@@ -100,38 +101,6 @@ npm run dev
 
 
 前端服务运行在 `http://localhost:3000`
-
-## API 接口
-
-### 用户接口
-
-| 方法 | 路径 | 说明 | 需要认证 |
-|------|------|------|----------|
-| POST | `/api/v1/users/register` | 用户注册 | 否 |
-| POST | `/api/v1/users/login` | 用户登录（参数：account, password） | 否 |
-| GET | `/api/v1/users/profile` | 获取当前用户信息 | 是 |
-| GET | `/api/v1/users` | 获取用户列表 | 否 |
-
-### 文章接口
-
-| 方法 | 路径 | 说明 | 需要认证 |
-|------|------|------|----------|
-| GET | `/api/v1/posts` | 获取文章列表（支持分页和搜索） | 否 |
-| GET | `/api/v1/posts/{post_id}` | 获取文章详情 | 否 |
-| POST | `/api/v1/posts` | 创建文章 | 是 |
-| PUT | `/api/v1/posts/{post_id}` | 更新文章 | 是 |
-| DELETE | `/api/v1/posts/{post_id}` | 删除文章 | 是 |
-| GET | `/api/v1/posts/user/{user_id}/posts` | 获取指定用户的文章 | 否 |
-
-### 评论接口
-
-| 方法 | 路径 | 说明 | 需要认证 |
-|------|------|------|----------|
-| GET | `/api/v1/comments/posts/{post_id}/comments` | 获取文章评论列表 | 否 |
-| POST | `/api/v1/comments/posts/{post_id}/comments` | 创建评论 | 是 |
-| DELETE | `/api/v1/comments/{comment_id}` | 删除评论 | 是 |
-
-**注意：** 评论接口路径为 `/comments/posts/{id}/comments`，不是 `/posts/{id}/comments`
 
 ## 配置说明
 
@@ -151,25 +120,14 @@ server: {
 }
 ```
 
-前端调用示例：
-- `request.get('/posts')` → 后端 `/api/v1/posts`
-- `request.get('/comments/posts/1/comments')` → 后端 `/api/v1/comments/posts/1/comments`
-
-
-### 请求拦截器
-
-前端使用 Axios 拦截器自动携带 JWT Token：
-
+**前端调用示例：**
 ```javascript
-// 请求拦截器
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
+// 前端代码
+request.get('/posts')              // → 后端 /api/v1/posts
+request.post('/users/login', data) // → 后端 /api/v1/users/login
 ```
+
+> ⚠️ **注意：** 前端调用时不需要加 `/api/v1` 前缀，Vite 代理会自动处理。
 
 
 ## 移动端适配
@@ -182,19 +140,49 @@ axios.interceptors.request.use(config => {
 - 触摸友好的按钮尺寸
 - 表单移动端优化
 
-## 开发说明
+## 开发指南
 
-### 添加新接口
+### 架构说明
 
-1. 在 `backend/app/models/` 定义数据库模型
-2. 在 `backend/app/schemas/` 定义 Pydantic 模型
-3. 在 `backend/app/crud/` 实现数据库操作
-4. 在 `backend/app/api/v1/` 创建或修改路由文件
-5. 在 `backend/app/main.py` 注册路由
-6. 在 `frontend/src/store/modules/` 添加 Vuex actions
-7. 在 Vue 组件中调用
+本项目采用分层架构设计：
 
-**注意：** 前端调用时不需要加 `/api/v1` 前缀，Vite 代理会自动处理。
+```
+请求流程：
+Client → Router (api/v1/) → Service → Repository → Model → Database
+                ↓
+            Response (统一格式)
+```
+
+- **Router 层**：处理 HTTP 请求与响应，参数验证
+- **Service 层**：业务逻辑处理（可选，复杂业务使用）
+- **Repository 层**：数据访问操作，封装数据库查询
+- **Model 层**：数据库模型定义
+- **Schema 层**：Pydantic 数据验证与序列化
+
+### 添加新功能
+
+1. **数据库模型**：在 `backend/app/models/` 定义 SQLAlchemy 模型
+2. **数据验证**：在 `backend/app/schemas/` 定义 Pydantic Schema
+3. **数据访问**：在 `backend/app/repositories/` 实现 CRUD 操作
+4. **API 路由**：在 `backend/app/api/v1/` 创建路由文件
+5. **注册路由**：在 `backend/app/main.py` 中 include_router
+6. **前端 Store**：在 `frontend/src/store/modules/` 添加 Vuex module
+7. **前端页面**：在 Vue 组件中调用 Store actions
+
+### 统一响应格式
+
+所有 API 接口返回统一的 JSON 格式：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {...},
+  "timestamp": "2026-04-16T10:30:00"
+}
+```
+
+前端请求拦截器会自动处理该格式，提取 `data` 字段。
 
 ### 数据库迁移
 
