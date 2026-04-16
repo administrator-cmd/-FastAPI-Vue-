@@ -64,7 +64,7 @@ async def delete_like(
     # 查看点赞是否存在
     like_obj = await like.get_like_by_user_and_post(db, current_user_id, post_id)
     if not like_obj:
-        return not_found(message="点赞不存在")
+        return not_found(message="还没有点赞")
     try:
         success = await like.delete_like(db, current_user_id, post_id)
         if not success:

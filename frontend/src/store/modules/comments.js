@@ -35,10 +35,15 @@ const actions = {
       })
   },
   
-  createComment({ commit }, { postId, commentData }) {
+  createComment({ commit, dispatch }, { postId, commentData }) {
     return request.post(`/comments/posts/${postId}`, commentData)
       .then(response => {
         commit('ADD_COMMENT', response)
+        // 新评论发表后，立即加载其点赞状态
+        if (response.id) {
+          dispatch('commentLikes/fetchCommentLikeCount', response.id, { root: true })
+          dispatch('commentLikes/fetchUserCommentLikeStatus', response.id, { root: true })
+        }
         return response
       })
       .catch(error => {

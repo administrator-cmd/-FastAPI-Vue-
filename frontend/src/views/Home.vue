@@ -3,7 +3,23 @@
     <el-row :gutter="20">
       <el-col :span="18">
         <div class="posts-container">
-          <h2>最新文章</h2>
+          <!-- 搜索框 -->
+          <div class="search-box">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="搜索文章标题或内容..."
+              prefix-icon="Search"
+              clearable
+              @keyup.enter="handleSearch"
+              @clear="handleClearSearch"
+            >
+              <template #append>
+                <el-button @click="handleSearch">搜索</el-button>
+              </template>
+            </el-input>
+          </div>
+          
+          <h2>{{ searchKeyword ? `搜索结果: "${searchKeyword}"` : '最新文章' }}</h2>
           
           <div v-if="loading" class="loading">
             <el-skeleton :rows="4" animated />
@@ -21,6 +37,16 @@
                   <span class="post-title">{{ post.title }}</span>
                   <div class="card-tags">
                     <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
+                    <!-- 显示文章标签 -->
+                    <el-tag 
+                      v-for="tag in post.tags" 
+                      :key="tag.id" 
+                      size="small" 
+                      type="success"
+                      style="margin-left: 4px;"
+                    >
+                      {{ tag.name }}
+                    </el-tag>
                     <el-tag type="danger" size="small">
                       <el-icon><Star /></el-icon>
                       {{ getLikeCount(post.id) }}
@@ -85,20 +111,23 @@
 </template>
 
 <script>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { Star } from '@element-plus/icons-vue'
+import { Star, Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 export default {
   name: 'Home',
   components: {
-    Star
+    Star,
+    Search
   },
   setup() {
     const store = useStore()
     const router = useRouter()
+    
+    const searchKeyword = ref('')
     
     const posts = computed(() => store.getters['posts/posts'])
     const loading = computed(() => store.getters['posts/loading'])
@@ -108,9 +137,9 @@ export default {
       return store.getters['likes/getLikeCount'](postId)
     }
     
-    const fetchPosts = async () => {
+    const fetchPosts = async (keyword = '') => {
       try {
-        const result = await store.dispatch('posts/fetchPosts')
+        const result = await store.dispatch('posts/fetchPosts', { keyword })
         console.log('文章列表:', result)
         // 加载每篇文章的点赞数
         for (const post of result) {
@@ -142,6 +171,19 @@ export default {
       return dayjs(dateString).format('YYYY-MM-DD HH:mm')
     }
     
+    const handleSearch = () => {
+      if (searchKeyword.value.trim()) {
+        fetchPosts(searchKeyword.value.trim())
+      } else {
+        handleClearSearch()
+      }
+    }
+    
+    const handleClearSearch = () => {
+      searchKeyword.value = ''
+      fetchPosts()
+    }
+    
     onMounted(() => {
       fetchPosts()
     })
@@ -150,10 +192,13 @@ export default {
       posts,
       loading,
       isLoggedIn,
+      searchKeyword,
       goToPost,
       truncateContent,
       formatDate,
-      getLikeCount
+      getLikeCount,
+      handleSearch,
+      handleClearSearch
     }
   }
 }

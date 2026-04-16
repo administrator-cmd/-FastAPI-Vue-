@@ -65,6 +65,14 @@ const actions = {
       commit('INCREMENT_COMMENT_LIKE_COUNT', commentId)
     } catch (error) {
       console.error('评论点赞失败:', error)
+      // 如果是重复点赞错误，说明数据库已有记录，同步本地状态
+      const errorMsg = error.response?.data?.message || error.message || ''
+      if (errorMsg.includes('UNIQUE constraint') || errorMsg.includes('已经点赞过')) {
+        console.warn('检测到重复点赞，同步本地状态为已点赞')
+        commit('SET_USER_COMMENT_LIKE', { commentId, liked: true })
+        // 不抛出错误，让调用方认为操作成功
+        return
+      }
       throw error
     }
   },
@@ -81,11 +89,27 @@ const actions = {
   },
 
   async toggleCommentLike({ dispatch, state }, commentId) {
-    const isLiked = state.userCommentLikes[commentId]
-    if (isLiked) {
-      await dispatch('deleteCommentLike', commentId)
-    } else {
-      await dispatch('createCommentLike', commentId)
+    try {
+      const isLiked = state.userCommentLikes[commentId]
+      if (isLiked) {
+        // 已点赞 → 取消点赞
+        await dispatch('deleteCommentLike', commentId)
+        return { success: true, action: 'unliked' }
+      } else {
+        // 未点赞 → 点赞
+        await dispatch('createCommentLike', commentId)
+        return { success: true, action: 'liked' }
+      }
+    } catch (error) {
+      // 如果创建点赞时遇到重复错误，说明状态不同步，重新获取状态
+      const errorMsg = error.response?.data?.message || error.message || ''
+      if (errorMsg.includes('UNIQUE constraint') || errorMsg.includes('已经点赞过')) {
+        console.warn('检测到状态不同步，重新获取点赞状态')
+        await dispatch('fetchUserCommentLikeStatus', commentId)
+        await dispatch('fetchCommentLikeCount', commentId)
+        return { success: true, action: 'synced' }
+      }
+      throw error
     }
   }
 }

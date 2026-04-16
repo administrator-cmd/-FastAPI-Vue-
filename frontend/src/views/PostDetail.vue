@@ -9,6 +9,16 @@
         <div class="post-meta">
           <el-tag type="info" size="small">{{ formatDate(post.created_at) }}</el-tag>
           <el-tag type="warning" size="small">作者: {{ post.author_username || post.author_id }}</el-tag>
+          <!-- 显示文章标签 -->
+          <el-tag 
+            v-for="tag in post.tags" 
+            :key="tag.id" 
+            size="small" 
+            type="success"
+            style="margin-left: 4px;"
+          >
+            {{ tag.name }}
+          </el-tag>
           <el-tag type="danger" size="small">
             <el-icon><Star /></el-icon>
             {{ likeCount }}

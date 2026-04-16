@@ -17,6 +17,36 @@
           />
         </el-form-item>
         
+        <el-form-item label="标签">
+          <div class="tag-input-container">
+            <el-tag
+              v-for="tag in inputTags"
+              :key="tag"
+              closable
+              @close="removeTag(tag)"
+              style="margin-right: 8px; margin-bottom: 8px;"
+            >
+              {{ tag }}
+            </el-tag>
+            <el-input
+              v-if="tagInputVisible"
+              ref="tagInputRef"
+              v-model="tagInputValue"
+              size="small"
+              style="width: 150px;"
+              @keyup.enter="handleTagInputConfirm"
+              @blur="handleTagInputConfirm"
+            />
+            <el-button 
+              v-else 
+              size="small" 
+              @click="showTagInput"
+            >
+              + 添加标签
+            </el-button>
+          </div>
+        </el-form-item>
+        
         <el-form-item label="内容" prop="content">
           <textarea id="post-content-editor"></textarea>
         </el-form-item>
@@ -40,7 +70,7 @@
 </template>
 
 <script>
-import { reactive, ref, toRefs, onMounted, onBeforeUnmount } from 'vue'
+import { reactive, ref, toRefs, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -53,7 +83,13 @@ export default {
     const store = useStore()
     const router = useRouter()
     const postFormRef = ref(null)
+    const tagInputRef = ref(null)
     let easyMDE = null
+    
+    // 标签相关状态
+    const inputTags = ref([])
+    const tagInputVisible = ref(false)
+    const tagInputValue = ref('')
     
     const state = reactive({
       form: {
@@ -109,7 +145,8 @@ export default {
         
         await store.dispatch('posts/createPost', {
           title: state.form.title,
-          content: state.form.content
+          content: state.form.content,
+          tag_names: inputTags.value
         })
         
         ElMessage.success('文章发布成功')
@@ -127,7 +164,30 @@ export default {
       }
     }
     
-    onMounted(() => {
+    // 显示标签输入框
+    const showTagInput = () => {
+      tagInputVisible.value = true
+      nextTick(() => {
+        tagInputRef.value?.focus()
+      })
+    }
+    
+    // 处理标签输入确认
+    const handleTagInputConfirm = () => {
+      const tagName = tagInputValue.value.trim()
+      if (tagName && !inputTags.value.includes(tagName)) {
+        inputTags.value.push(tagName)
+      }
+      tagInputVisible.value = false
+      tagInputValue.value = ''
+    }
+    
+    // 移除已选标签
+    const removeTag = (tagName) => {
+      inputTags.value = inputTags.value.filter(tag => tag !== tagName)
+    }
+    
+    onMounted(async () => {
       initEditor()
     })
     
@@ -142,7 +202,14 @@ export default {
     return {
       ...toRefs(state),
       postFormRef,
-      submitForm
+      tagInputRef,
+      submitForm,
+      inputTags,
+      tagInputVisible,
+      tagInputValue,
+      showTagInput,
+      handleTagInputConfirm,
+      removeTag
     }
   }
 }
@@ -164,6 +231,13 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.tag-input-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 /* EasyMDE 样式调整 */

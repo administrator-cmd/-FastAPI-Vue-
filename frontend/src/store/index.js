@@ -4,6 +4,7 @@ import posts from './modules/posts'
 import comments from './modules/comments'
 import likes from './modules/likes'
 import commentLikes from './modules/commentLikes'
+import tags from './modules/tags'
 
 export default createStore({
   modules: {
@@ -11,6 +12,7 @@ export default createStore({
     posts,
     comments,
     likes,
-    commentLikes
+    commentLikes,
+    tags
   }
 })

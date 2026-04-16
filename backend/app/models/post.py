@@ -5,6 +5,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
+from app.models.tag import post_tags
 
 
 class Post(Base):
@@ -23,6 +24,8 @@ class Post(Base):
     author = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="post", cascade="all, delete-orphan")
+
+    tags = relationship("Tag", secondary=post_tags, back_populates="posts")
 
     def __repr__(self):
         return f"<Post(id={self.id}, title={self.title}, author_id={self.author_id})>"

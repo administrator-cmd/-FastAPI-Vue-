@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories import comment_like
 from app.dependencies import get_current_user_id, get_async_db
 from app.schemas.comment_like import CommentLikeCount, CommentLikeResponse, CommentLikeRequest
-from app.schemas.response import created, ok, not_found, server_error
+from app.schemas.response import created, ok, not_found, server_error, bad_request
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,12 @@ async def create_comment_like(
     except ValueError as e:
         return server_error(message=str(e))
     except Exception as e:
+        # 捕获数据库唯一约束错误
+        error_msg = str(e)
+        if "UNIQUE constraint failed" in error_msg or "unique constraint" in error_msg.lower():
+            logger.warning(f"重复点赞: 用户ID={current_user_id}, 评论ID={request_data.comment_id}")
+            return bad_request(message="已经点赞过")
+        
         logger.error(f"创建评论点赞失败: {str(e)}")
         return server_error(message=f"创建评论点赞失败: {str(e)}")
 
@@ -103,7 +109,7 @@ async def get_user_comment_like_status(
     """
     logger.info(f"获取用户评论点赞状态,用户ID={current_user_id},评论ID={comment_id}")
     try:
-        like_obj = await comment_like.get_comment_like_by_user_and_comment(db, comment_id, current_user_id)
+        like_obj = await comment_like.get_comment_like_by_user_and_comment(db, current_user_id, comment_id)
         return ok(data={"comment_id": comment_id, "is_liked": like_obj is not None})
     except Exception as e:
         logger.error(f"获取评论点赞状态失败: {str(e)}")

@@ -9,15 +9,17 @@ from sqlalchemy.orm import joinedload
 
 from app.models.post import Post
 from app.models.user import User
+from app.models.tag import Tag, post_tags
 from app.utils.markdown import render_markdown
 from app.repositories import user as user_crud
+from app.repositories import tag as tag_crud
 from app.repositories import comment as comment_crud
 
 
 async def get_post_by_id(db: AsyncSession, post_id: int) -> Optional[Post]:
     """异步根据ID获取文章"""
     result = await db.execute(
-        select(Post).filter(Post.id == post_id).options(joinedload(Post.author))
+        select(Post).filter(Post.id == post_id).options(joinedload(Post.author), joinedload(Post.tags))
     )
     return result.unique().scalar_one_or_none()
 
@@ -37,7 +39,7 @@ async def get_posts(
     keyword: str = None
 ) -> List[Post]:
     """异步获取文章列表（支持分页和搜索）"""
-    query = select(Post).options(joinedload(Post.author))
+    query = select(Post).options(joinedload(Post.author), joinedload(Post.tags))
 
     if keyword and keyword.strip():
         query = query.filter(
@@ -60,9 +62,8 @@ async def get_post_count(db: AsyncSession) -> int:
     return len(posts)
 
 
-async def create_post(db: AsyncSession, title: str, content: str, author_id: int) -> Post:
+async def create_post(db: AsyncSession, title: str, content: str, author_id: int, tags: List["Tag"] = None) -> Post:
     """异步创建文章"""
-    # 验证作者是否存在
     author = await user_crud.get_user_by_id(db, author_id)
     if not author:
         raise ValueError("作者不存在")
@@ -71,7 +72,8 @@ async def create_post(db: AsyncSession, title: str, content: str, author_id: int
         title=title,
         content=content,
         content_html=render_markdown(content),
-        author_id=author_id
+        author_id=author_id,
+        tags=tags or []  # 直接绑定标签对象列表
     )
     
     db.add(db_post)

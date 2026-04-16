@@ -11,6 +11,7 @@ import logging
 from app.dependencies import get_async_db, get_current_user_id, verify_post_owner, get_pagination
 from app.schemas.post import PostCreate, PostResponse
 from app.repositories import post as post_crud
+from app.repositories import tag as tag_crud
 from app.schemas.response import success_response, error_response, created, not_found, server_error, ok
 
 logger = logging.getLogger(__name__)
@@ -29,11 +30,22 @@ async def create_post(
     POST /api/v1/posts
     """
     try:
+        # 1. 处理标签：先插入或获取标签对象
+        tags = []
+        if post_data.tag_names:
+            for name in post_data.tag_names:
+                tag_obj = await tag_crud.get_tag_by_name(db, name)
+                if not tag_obj:
+                    tag_obj = await tag_crud.create_tag(db, name)
+                tags.append(tag_obj)
+        
+        # 2. 创建文章
         db_post = await post_crud.create_post(
             db,
             title=post_data.title,
             content=post_data.content,
-            author_id=current_user_id
+            author_id=current_user_id,
+            tags=tags
         )
         
         post_response = PostResponse(
@@ -42,6 +54,7 @@ async def create_post(
             content=db_post.content,
             content_html=db_post.content_html,
             author_id=db_post.author_id,
+            tags=[{"id": tag.id, "name": tag.name} for tag in db_post.tags],
             created_at=db_post.created_at,
             updated_at=db_post.updated_at
         )
@@ -81,6 +94,7 @@ async def list_posts(
             content_html=post.content_html,
             author_id=post.author_id,
             author_username=post.author.username if post.author else None,
+            tags=[{"id": tag.id, "name": tag.name} for tag in post.tags],
             created_at=post.created_at,
             updated_at=post.updated_at
         ).model_dump()
@@ -107,6 +121,7 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
         content_html=post.content_html,
         author_id=post.author_id,
         author_username=post.author.username if post.author else None,
+        tags=[{"id": tag.id, "name": tag.name} for tag in post.tags],
         created_at=post.created_at,
         updated_at=post.updated_at
     )
