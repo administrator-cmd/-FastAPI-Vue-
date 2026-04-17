@@ -8,6 +8,7 @@
         @select="handleMenuSelect"
       >
         <el-menu-item index="/">首页</el-menu-item>
+        <el-menu-item index="/qa">智能问答</el-menu-item>
         <div class="flex-grow" />
         <template v-if="!isLoggedIn">
           <el-menu-item index="/login">登录</el-menu-item>

@@ -6,6 +6,7 @@ import Profile from '../views/Profile.vue'
 import CreatePost from '../views/CreatePost.vue'
 import EditPost from '../views/EditPost.vue'
 import PostDetail from '../views/PostDetail.vue'
+import QA from '../views/QA.vue'
 
 const routes = [
   {
@@ -49,6 +50,12 @@ const routes = [
     name: 'PostDetail',
     component: PostDetail,
     props: true
+  },
+  {
+    path: '/qa',
+    name: 'QA',
+    component: QA,
+    meta: { requiresAuth: true }
   }
 ]
 

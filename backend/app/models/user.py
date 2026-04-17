@@ -25,5 +25,7 @@ class User(Base):
     likes = relationship("Like", back_populates="author", cascade="all,delete-orphan") # 解释： 删除用户时，删除用户下的所有点赞记录
     # 定义与CommentLike模型的一对多关系
     comment_likes = relationship("CommentLike", back_populates="author", cascade="all,delete-orphan")
+    # 与 qa_records 表双向关联
+    qa_records = relationship("QARecord", back_populates="user", cascade="all,delete-orphan") # 删除用户时，删除用户下的所有问答记录
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"

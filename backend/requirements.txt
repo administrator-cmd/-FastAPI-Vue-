@@ -30,3 +30,7 @@ pydantic==2.13.0
 python_jose==3.5.0
 SQLAlchemy==2.0.49
 starlette==1.0.0
+
+# 读取环境变量
+python-dotenv==1.0.0
+

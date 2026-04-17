@@ -30,20 +30,19 @@ service.interceptors.response.use(
     // 后端返回统一格式: { code, message, data, timestamp }
     const res = response.data
     
-    // 如果响应已经是统一格式（包含code字段）
-    if (res.code !== undefined) {
-      // 成功响应 (2xx)
-      if (res.code >= 200 && res.code < 300) {
-        return res.data || res  // 返回data字段，如果没有则返回整个响应
-      } else {
-        // 业务错误
-        ElMessage.error(res.message || '请求失败')
-        return Promise.reject(new Error(res.message || '请求失败'))
-      }
+    // 增加空值保护，防止后端返回 null 导致崩溃
+    if (!res || res.code === undefined) {
+      return res || {}
     }
     
-    // 兼容旧格式，直接返回数据
-    return res
+    // 如果响应已经是统一格式（包含code字段）
+    if (res.code >= 200 && res.code < 300) {
+      return res.data || res  // 返回data字段，如果没有则返回整个响应
+    } else {
+      // 业务错误
+      ElMessage.error(res.message || '请求失败')
+      return Promise.reject(new Error(res.message || '请求失败'))
+    }
   },
   error => {
     // HTTP 错误处理

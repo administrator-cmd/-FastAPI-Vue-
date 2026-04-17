@@ -7,8 +7,10 @@ import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
+from app.core.config import settings
+
 # 异步数据库URL配置
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./blog_v4.db")
+DATABASE_URL = settings.DATABASE_URL
 
 
 # 创建异步数据库引擎

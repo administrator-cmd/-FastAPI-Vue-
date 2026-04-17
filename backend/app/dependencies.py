@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from app.core.database import AsyncSession, AsyncSessionLocal
+from app.core.database import AsyncSessionLocal
 from app.utils.auth import verify_token
 from app.repositories import user as user_crud
 from app.repositories import post as post_crud

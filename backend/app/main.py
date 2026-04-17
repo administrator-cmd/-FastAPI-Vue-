@@ -12,7 +12,7 @@ import time
 
 from app.core.database import create_tables
 from app.dependencies import get_async_db
-from app.api.v1 import users, posts, comments, like, comment_like, tags
+from app.api.v1 import users, posts, comments, like, comment_like, tags, qa
 from app.core.exceptions import (
     http_exception_handler,
     validation_exception_handler,
@@ -169,6 +169,7 @@ app.include_router(comments.router, prefix="/api/v1")
 app.include_router(like.router, prefix="/api/v1")
 app.include_router(comment_like.router, prefix="/api/v1")
 app.include_router(tags.router, prefix="/api/v1")
+app.include_router(qa.router, prefix="/api/v1")
 
 logger.info("✓ API路由注册完成")
 logger.info("✓ 博客系统启动成功")

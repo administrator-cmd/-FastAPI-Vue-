@@ -5,6 +5,7 @@ import comments from './modules/comments'
 import likes from './modules/likes'
 import commentLikes from './modules/commentLikes'
 import tags from './modules/tags'
+import qa from './modules/qa'
 
 export default createStore({
   modules: {
@@ -13,6 +14,7 @@ export default createStore({
     comments,
     likes,
     commentLikes,
-    tags
+    tags,
+    qa
   }
 })

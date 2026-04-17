@@ -54,7 +54,7 @@ async def create_post(
             content=db_post.content,
             content_html=db_post.content_html,
             author_id=db_post.author_id,
-            tags=[{"id": tag.id, "name": tag.name} for tag in db_post.tags],
+            tags=[{"id": tag.id, "name": tag.name} for tag in tags],
             view_count=db_post.view_count,
             created_at=db_post.created_at,
             updated_at=db_post.updated_at

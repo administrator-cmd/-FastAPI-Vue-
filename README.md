@@ -1,6 +1,6 @@
 # FastAPI Blog 系统
 
-一个基于 FastAPI + Vue 3 的全栈博客系统，支持 Markdown 编辑、用户认证、移动端适配。
+一个基于 FastAPI + Vue 3 的全栈博客系统，支持 Markdown 编辑、用户认证、智能问答、移动端适配。
 
 ## 技术栈
 
@@ -10,6 +10,8 @@
 - **JWT** - 用户认证
 - **SQLite** - 数据库
 - **Markdown** - 文章渲染
+- **httpx** - 异步 HTTP 客户端（AI API 调用）
+- **python-dotenv** - 环境变量管理
 
 ### 前端
 - **Vue 3** - 渐进式 JavaScript 框架
@@ -58,14 +60,54 @@ Fastapi-blog/
 - ✅ 文章 CRUD 操作
 - ✅ 评论系统（创建、查看、删除）
 - ✅ 点赞功能（文章点赞、评论点赞）
+- ✅ **智能问答**（集成云端 AI API，支持多轮对话上下文）
 - ✅ 用户个人中心
 - ✅ **完整移动端适配**（768px/480px 断点，触摸友好）
 - ✅ RESTful API 设计
 - ✅ 分层架构（Router → Service → Repository → Model）
 - ✅ 统一响应格式与异常处理
 - ✅ 请求拦截器自动携带 Token
+- ✅ 环境变量配置管理（.env 文件）
 
 ## 快速开始
+
+### 环境配置
+
+#### 1. 创建 `.env` 文件
+
+在 `backend/` 目录下创建 `.env` 文件（**不要提交到 Git**）：
+
+```env
+# 数据库配置
+DATABASE_URL=sqlite+aiosqlite:///./blog_v4.db
+
+# JWT 配置
+SECRET_KEY=your-super-secret-key-change-this-in-production
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# AI API 配置（智能问答功能）
+AI_API_KEY=sk-your-api-key-here
+AI_API_URL=https://api.openai.com/v1/chat/completions
+AI_MODEL=gpt-3.5-turbo
+```
+
+> ⚠️ **重要：** 
+> - `SECRET_KEY` 生产环境必须使用强随机密钥
+> - `AI_API_KEY` 需要替换为你自己的 AI API 密钥
+> - `.env` 文件已加入 `.gitignore`，不会上传到 GitHub
+
+#### 2. 安装依赖
+
+```bash
+# 后端依赖
+cd backend
+pip install -r requirements.txt
+
+# 前端依赖
+cd frontend
+npm install
+```
 
 ### 后端启动
 
@@ -95,7 +137,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 # 进入前端目录
 cd frontend
 
-# 安装依赖
+# 安装依赖（如果还没安装）
 npm install
 
 # 启动开发服务器
@@ -105,7 +147,75 @@ npm run dev
 
 前端服务运行在 `http://localhost:3000`
 
+## 功能模块
+
+### 智能问答
+
+项目集成了云端 AI API，提供智能问答功能：
+
+**功能特性：**
+- 🤖 向 AI 提问，获取智能回答
+- 💬 支持多轮对话上下文（可选）
+- 📝 自动保存问答历史记录
+- 🔒 仅登录用户可使用
+- 📱 完整的移动端适配
+
+**API 接口：**
+- `POST /api/v1/qa/ask` - 向 AI 提问
+- `GET /api/v1/qa/history` - 获取问答历史
+
+**使用步骤：**
+1. 在 `.env` 中配置 `AI_API_KEY`、`AI_API_URL`、`AI_MODEL`
+2. 启动后端和前端服务
+3. 登录后访问 `/qa` 页面即可使用
+
+> 💡 **支持的 AI 服务商：** OpenAI、Azure OpenAI、国内大模型平台等（需兼容 OpenAI 格式）
+
+---
+
 ## 配置说明
+
+### 环境变量配置
+
+项目使用 `python-dotenv` 管理敏感配置信息：
+
+**配置文件位置：** `backend/.env`
+
+**必需配置项：**
+```env
+# 数据库
+DATABASE_URL=sqlite+aiosqlite:///./blog_v4.db
+
+# JWT 认证
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# AI API（智能问答）
+AI_API_KEY=your-api-key
+AI_API_URL=https://api.openai.com/v1/chat/completions
+AI_MODEL=gpt-3.5-turbo
+```
+
+**配置加载流程：**
+```
+app/core/config.py → load_dotenv() → os.getenv()
+       ↓
+所有模块通过 settings 对象访问配置
+```
+
+**示例代码：**
+```python
+from app.core.config import settings
+
+# 访问配置
+api_key = settings.AI_API_KEY
+db_url = settings.DATABASE_URL
+```
+
+> ⚠️ **安全提示：**
+> - `.env` 文件包含敏感信息，**切勿提交到版本控制系统**
+> - 生产环境建议使用更安全的密钥管理方案（如 Vault、AWS Secrets Manager）
 
 ### 前端代理配置
 
@@ -199,24 +309,53 @@ npm run dev -- --host
 - [RESPONSIVE_GUIDE.md](frontend/RESPONSIVE_GUIDE.md) - 响应式适配详细说明
 - [TESTING_GUIDE.md](frontend/TESTING_GUIDE.md) - 完整测试指南
 
-## 开发指南
+## 技术亮点
 
-### 架构说明
-
-本项目采用分层架构设计：
+### 1. 分层架构设计
 
 ```
 请求流程：
-Client → Router (api/v1/) → Service → Repository → Model → Database
+Client → Router (api/v1/) → Repository → Model → Database
                 ↓
             Response (统一格式)
 ```
 
 - **Router 层**：处理 HTTP 请求与响应，参数验证
-- **Service 层**：业务逻辑处理（可选，复杂业务使用）
 - **Repository 层**：数据访问操作，封装数据库查询
 - **Model 层**：数据库模型定义
 - **Schema 层**：Pydantic 数据验证与序列化
+- **Utils 层**：工具函数（JWT、AI API 调用等）
+
+### 2. 统一响应格式
+
+所有 API 接口返回统一的 JSON 格式：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {...},
+  "timestamp": 1713168000000
+}
+```
+
+前端请求拦截器会自动处理该格式，提取 `data` 字段。
+
+### 3. 环境变量管理
+
+- 使用 `python-dotenv` 加载 `.env` 文件
+- 集中配置管理（`app/core/config.py`）
+- 无硬编码配置，易于部署和维护
+
+### 4. 异步编程
+
+- 全程使用 `async/await` 异步编程
+- SQLAlchemy 2.0 异步 ORM
+- httpx 异步 HTTP 客户端
+
+---
+
+## 开发指南
 
 ### 添加新功能
 
@@ -228,20 +367,7 @@ Client → Router (api/v1/) → Service → Repository → Model → Database
 6. **前端 Store**：在 `frontend/src/store/modules/` 添加 Vuex module
 7. **前端页面**：在 Vue 组件中调用 Store actions
 
-### 统一响应格式
-
-所有 API 接口返回统一的 JSON 格式：
-
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {...},
-  "timestamp": "2026-04-16T10:30:00"
-}
-```
-
-前端请求拦截器会自动处理该格式，提取 `data` 字段。
+参考智能问答功能的实现方式。
 
 ### 数据库迁移
 
@@ -261,6 +387,31 @@ alembic upgrade head
 - FastAPI 0.104+
 - Vue 3.2+
 - Element Plus 2.2+
+
+## 常见问题
+
+### Q: 如何更换 AI API 服务商？
+
+A: 修改 `.env` 文件中的 `AI_API_URL` 和 `AI_MODEL`，确保新服务商兼容 OpenAI 格式即可。
+
+### Q: 为什么我的 `.env` 文件没有生效？
+
+A: 检查以下几点：
+1. 确认 `python-dotenv` 已安装
+2. 确认 `.env` 文件在 `backend/` 目录下
+3. 重启后端服务
+4. 检查环境变量名是否正确
+
+### Q: 如何部署到生产环境？
+
+A: 
+1. 设置强 `SECRET_KEY`
+2. 配置真实的数据库（PostgreSQL/MySQL）
+3. 使用 Gunicorn + Uvicorn 运行后端
+4. 构建前端静态文件并配置 Nginx
+5. 使用 HTTPS 证书
+
+---
 
 ## License
 
