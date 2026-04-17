@@ -6,7 +6,7 @@
   </component>
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DatabaseAssistantManager">
@@ -59,7 +59,16 @@
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
     <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.posts" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.comments" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.comment_likes" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.tags" active-filter-id="a9a68763-0686-4f54-836f-0157ac99d9d8">
+      <filter id="a9a68763-0686-4f54-836f-0157ac99d9d8" name="Filter" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="id" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
     <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.users" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.likes" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="4499f96f-9125-4919-bbcc-40336569170a" dataset="blog_v4.post_tags" active-filter-id="EMPTY_FILTER" />
   </component>
   <component name="DBNavigator.Project.ExecutionManager">
     <retain-sticky-names value="false" />

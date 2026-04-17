@@ -27,7 +27,7 @@ async def get_post_by_id(db: AsyncSession, post_id: int) -> Optional[Post]:
 async def get_posts_by_user(db: AsyncSession, user_id: int) -> List[Post]:
     """异步获取指定用户的所有文章"""
     result = await db.execute(
-        select(Post).filter(Post.author_id == user_id).order_by(desc(Post.created_at))
+        select(Post).filter(Post.author_id == user_id).order_by(desc(Post.created_at)).options(joinedload(Post.tags))
     )
     return result.unique().scalars().all()
 

@@ -23,6 +23,10 @@
             <el-icon><Star /></el-icon>
             {{ likeCount }}
           </el-tag>
+          <el-tag type="primary" size="small">
+            <el-icon><View /></el-icon>
+            {{ post.view_count || 0 }}
+          </el-tag>
         </div>
         <div class="post-content" v-html="post.content_html"></div>
         <div class="post-interactions" v-if="currentUser">
@@ -133,13 +137,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Star } from '@element-plus/icons-vue'
+import { Star, View } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 export default {
   name: 'PostDetail',
   components: {
-    Star
+    Star,
+    View
   },
   setup() {
     const store = useStore()

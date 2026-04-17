@@ -51,6 +51,10 @@
                       <el-icon><Star /></el-icon>
                       {{ getLikeCount(post.id) }}
                     </el-tag>
+                    <el-tag type="primary" size="small">
+                      <el-icon><View /></el-icon>
+                      {{ post.view_count || 0 }}
+                    </el-tag>
                   </div>
                 </div>
               </template>
@@ -114,14 +118,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { Star, Search } from '@element-plus/icons-vue'
+import { Star, Search, View } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 
 export default {
   name: 'Home',
   components: {
     Star,
-    Search
+    Search,
+    View
   },
   setup() {
     const store = useStore()

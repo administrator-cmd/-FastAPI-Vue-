@@ -55,6 +55,7 @@ async def create_post(
             content_html=db_post.content_html,
             author_id=db_post.author_id,
             tags=[{"id": tag.id, "name": tag.name} for tag in db_post.tags],
+            view_count=db_post.view_count,
             created_at=db_post.created_at,
             updated_at=db_post.updated_at
         )
@@ -95,6 +96,7 @@ async def list_posts(
             author_id=post.author_id,
             author_username=post.author.username if post.author else None,
             tags=[{"id": tag.id, "name": tag.name} for tag in post.tags],
+            view_count=post.view_count,
             created_at=post.created_at,
             updated_at=post.updated_at
         ).model_dump()
@@ -114,6 +116,11 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
     if not post:
         return not_found(message="文章不存在")
     
+    # 阅读量+1
+    post.view_count += 1
+    await db.commit()
+    await db.refresh(post) # 刷新数据库
+    
     post_response = PostResponse(
         id=post.id,
         title=post.title,
@@ -122,6 +129,7 @@ async def get_post(post_id: int, db: AsyncSession = Depends(get_async_db)):
         author_id=post.author_id,
         author_username=post.author.username if post.author else None,
         tags=[{"id": tag.id, "name": tag.name} for tag in post.tags],
+        view_count=post.view_count,
         created_at=post.created_at,
         updated_at=post.updated_at
     )
@@ -154,6 +162,8 @@ async def update_post(
             content=updated_post.content,
             content_html=updated_post.content_html,
             author_id=updated_post.author_id,
+            tags=[{"id": tag.id, "name": tag.name} for tag in updated_post.tags],
+            view_count=updated_post.view_count,
             created_at=updated_post.created_at,
             updated_at=updated_post.updated_at
         )
@@ -201,6 +211,9 @@ async def get_user_posts(user_id: int, db: AsyncSession = Depends(get_async_db))
             content=post.content,
             content_html=post.content_html,
             author_id=post.author_id,
+            author_username=post.author.username if post.author else None,
+            tags=[{"id": tag.id, "name": tag.name} for tag in post.tags],
+            view_count=post.view_count,
             created_at=post.created_at,
             updated_at=post.updated_at
         ).model_dump()
