@@ -12,7 +12,7 @@ import time
 
 from app.core.database import create_tables
 from app.dependencies import get_async_db
-from app.api.v1 import users, posts, comments, like, comment_like, tags, qa
+from app.api.v1 import users, posts, comments, like, comment_like, tags, qa, websocket
 from app.core.exceptions import (
     http_exception_handler,
     validation_exception_handler,
@@ -37,13 +37,26 @@ app = FastAPI(
 )
 
 # 添加CORS中间件
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware as StarletteCORSMiddleware
+
+# 自定义中间件：WebSocket 请求跳过 CORS 检查
+@app.middleware("http")
+async def cors_bypass_for_websocket(request: Request, call_next):
+    """WebSocket 升级请求绕过 CORS 中间件"""
+    if request.headers.get("upgrade", "").lower() == "websocket":
+        response = await call_next(request)
+        return response
+    return await call_next(request)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "*"  # 允许所有源（开发环境）
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -170,6 +183,7 @@ app.include_router(like.router, prefix="/api/v1")
 app.include_router(comment_like.router, prefix="/api/v1")
 app.include_router(tags.router, prefix="/api/v1")
 app.include_router(qa.router, prefix="/api/v1")
+app.include_router(websocket.router, prefix="/api/v1")
 
 logger.info("✓ API路由注册完成")
 logger.info("✓ 博客系统启动成功")

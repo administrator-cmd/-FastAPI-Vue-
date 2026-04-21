@@ -7,6 +7,7 @@ import CreatePost from '../views/CreatePost.vue'
 import EditPost from '../views/EditPost.vue'
 import PostDetail from '../views/PostDetail.vue'
 import QA from '../views/QA.vue'
+import Chat from '../views/Chat.vue'
 
 const routes = [
   {
@@ -55,6 +56,12 @@ const routes = [
     path: '/qa',
     name: 'QA',
     component: QA,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: Chat,
     meta: { requiresAuth: true }
   }
 ]

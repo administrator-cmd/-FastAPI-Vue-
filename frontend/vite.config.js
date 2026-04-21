@@ -16,7 +16,7 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api/v1')
+        ws: true  // 启用 WebSocket 代理
       }
     }
   },

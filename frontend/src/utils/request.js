@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: '/api', // 代理到后端API
+  baseURL: '/api/v1', // 代理到后端API
   timeout: 10000 // 请求超时时间
 })
 
